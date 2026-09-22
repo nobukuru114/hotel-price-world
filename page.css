@@ -72,3 +72,12 @@ p.sub{color:var(--sub);font-size:12.5px}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
 .backlink{margin:22px 0 0;font-size:13.5px}
 .backlink a{text-decoration:none}
+
+/* ---- 国別ページ ---- */
+table.ctbl th{width:auto;white-space:nowrap;font-size:12px}
+table.ctbl td{vertical-align:middle}
+table.ctbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.ctbl td a{font-weight:600;text-decoration:none}
+table.ctbl td a:hover{text-decoration:underline}
+table.ctbl small{color:var(--sub);font-weight:400}
+table.ctbl .sub{color:var(--sub);font-size:12.5px}
