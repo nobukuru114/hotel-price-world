@@ -171,15 +171,23 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 .ctrypage a{color:var(--accent);text-decoration:none;background:var(--accent-soft);
   padding:5px 11px;border-radius:8px;display:inline-block}
 .ctrypage a:hover{background:var(--accent);color:#fff}
-.secnav{position:sticky;top:0;z-index:700;display:flex;gap:6px;flex-wrap:wrap;
-  padding:10px 0;background:var(--bg)}
+.secnav{position:sticky;top:0;z-index:700;padding:10px 0 8px;background:var(--bg)}
+.secnav-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.secnav .jumprow{margin-top:6px;gap:5px}
+.jlabel{font-size:11px;color:var(--sub);white-space:nowrap;margin-right:2px}
+.jchips{display:flex;gap:5px;flex-wrap:wrap}
+.jchip{font-family:inherit;font-size:11.5px;color:var(--sub);background:var(--card);
+  border:1px solid var(--line);border-radius:7px;padding:2px 8px;cursor:pointer;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.jchip:hover{color:var(--accent);border-color:var(--accent)}
+.jchip.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+.jumprow:empty,.jchips:empty{display:none}
 .secnav a{font-size:12.5px;color:var(--sub);text-decoration:none;background:var(--card);
   border:1px solid var(--line);border-radius:999px;padding:5px 13px;white-space:nowrap;
   box-shadow:var(--shadow)}
 .secnav a:hover{color:var(--accent);border-color:var(--accent)}
 .secnav a:focus:not(:focus-visible){outline:none}
 .secnav a.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:600}
-@media(min-width:1081px){ thead th{top:var(--navh,52px)} }
 @media(max-width:1080px){ .secnav{position:static;padding:4px 0 10px} }
 .sitefoot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
   display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;
@@ -212,10 +220,16 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 <main class="col-main">
 
 <nav class="secnav" id="secnav" aria-label="セクション移動">
-  <a href="#sec-bands" data-t="sec-bands">価格帯の分布</a>
-  <a href="#sec-rank" data-t="sec-rank">ランキング</a>
-  <a href="#sec-country" data-t="sec-country">国・地域別</a>
-  <a href="#sec-note" data-t="sec-note">データと注意点</a>
+  <div class="secnav-row">
+    <a href="#sec-bands" data-t="sec-bands">価格帯の分布</a>
+    <a href="#sec-rank" data-t="sec-rank">ランキング</a>
+    <a href="#sec-country" data-t="sec-country">国・地域別</a>
+    <a href="#sec-note" data-t="sec-note">データと注意点</a>
+  </div>
+  <div class="secnav-row jumprow" id="secnav-jump">
+    <span class="jlabel" id="secnav-jlabel">ランキング内</span>
+    <span class="jchips" id="secnav-jchips"></span>
+  </div>
 </nav>
 
 <div class="card" id="sec-bands">
@@ -509,6 +523,7 @@ function paintTable(){
   const list = sorted(visible());
   document.getElementById("count").textContent = list.length + " 件を表示";
   tb.innerHTML = list.map(d => cityRow(d, true)).join("");
+  if(navJump) navJump();          // 位置ジャンプのチップを表示件数に合わせ直す
 }
 
 function paintBands(){
@@ -569,6 +584,7 @@ function paintCountries(){
     });
     if(mapFocus && el.dataset.c===mapFocus){ el.open=true; el.classList.add("focused"); }
   });
+  if(navJump) navJump();
 }
 
 function openCountry(c){
@@ -827,17 +843,66 @@ paintBandMonth();
 paintBands(); paintTable(); paintCountries(); paintMap(); paintFocusBadge(); paintFavBtn();
 requestAnimationFrame(fit); setTimeout(fit,300); setTimeout(fit,1200);
 window.addEventListener("load",()=>setTimeout(fit,100));
-// ---- セクションジャンプ ----
-(function(){
-  const nav = document.getElementById("secnav");
-  if(!nav) return;
+// ---- セクションジャンプ＋位置ジャンプ ----
+var navJump = null;
+navJump = (function(){
+  const nav  = document.getElementById("secnav");
+  if(!nav) return () => {};
   const links = [...nav.querySelectorAll("a[data-t]")];
+  const jrow  = document.getElementById("secnav-jump");
+  const jlab  = document.getElementById("secnav-jlabel");
+  const jbox  = document.getElementById("secnav-jchips");
   const sticky = () => getComputedStyle(nav).position === "sticky";
   const offset = () => (sticky() ? nav.offsetHeight + 6 : 6);
-  const syncH = () => document.documentElement.style.setProperty("--navh",
-    (sticky() ? nav.offsetHeight : 0) + "px");
-  syncH();
-  window.addEventListener("resize", () => { syncH(); mark(); });
+
+  let lock = 0;                       // クリック直後はスクロール判定を止める
+  let jumpTarget = "sec-rank";        // 位置ジャンプの対象セクション
+
+  function goTo(el){
+    if(!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - offset();
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  }
+
+  // 位置ジャンプのチップを、いま表示されている行数から作り直す
+  function buildJump(){
+    const isRank = jumpTarget === "sec-rank";
+    const sel = isRank ? "#rank tbody tr" : "#bycountry > details.country";
+    const step = isRank ? 50 : 20;
+    const items = [...document.querySelectorAll(sel)];
+    jlab.textContent = isRank ? "ランキング内" : "国・地域別";
+    if(items.length <= step){ jbox.innerHTML = ""; return; }
+    let html = "";
+    for(let i = 0; i < items.length; i += step){
+      const last = Math.min(i + step, items.length);
+      html += `<button type="button" class="jchip" data-i="${i}">${i + 1}–${last}</button>`;
+    }
+    jbox.innerHTML = html;
+  }
+
+  jbox && jbox.addEventListener("click", ev => {
+    const b = ev.target.closest(".jchip");
+    if(!b) return;
+    const isRank = jumpTarget === "sec-rank";
+    const sec = document.getElementById(jumpTarget);
+    if(sec && sec.tagName === "DETAILS" && !sec.open){ sec.open = true; buildJump(); }
+    const items = [...document.querySelectorAll(isRank ? "#rank tbody tr" : "#bycountry > details.country")];
+    const el = items[+b.dataset.i];
+    if(!el) return;
+    lock = Date.now() + 900;
+    setActive(jumpTarget);
+    jbox.querySelectorAll(".jchip").forEach(c => c.classList.toggle("on", c === b));
+    // 行はテーブル見出しの下に来るよう、さらに見出し分だけ余分にずらす
+    const y = el.getBoundingClientRect().top + window.scrollY - offset();
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  });
+
+  function setActive(id){
+    links.forEach(a => a.classList.toggle("on", a.dataset.t === id));
+    const t = (id === "sec-country" || id === "sec-note") ? "sec-country" : "sec-rank";
+    if(t !== jumpTarget){ jumpTarget = t; buildJump(); }
+  }
+
   nav.addEventListener("click", ev => {
     const a = ev.target.closest("a[data-t]");
     if(!a) return;
@@ -845,20 +910,32 @@ window.addEventListener("load",()=>setTimeout(fit,100));
     const el = document.getElementById(a.dataset.t);
     if(!el) return;
     if(el.tagName === "DETAILS" && !el.open) el.open = true;   // たたまれていたら開く
-    const y = el.getBoundingClientRect().top + window.scrollY - offset();
-    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    lock = Date.now() + 900;                                   // 着地までハイライトを固定
+    setActive(a.dataset.t);
+    jbox && jbox.querySelectorAll(".jchip.on").forEach(c => c.classList.remove("on"));
+    goTo(el);
   });
+
   function mark(){
+    if(Date.now() < lock) return;
+    const doc = document.documentElement;
+    // 最下端まで来たら、高さの足りない最終セクションを現在地とみなす
+    if(window.scrollY + window.innerHeight >= doc.scrollHeight - 4){
+      setActive(links[links.length - 1].dataset.t);
+      return;
+    }
     const line = window.scrollY + offset() + 24;
     let cur = links[0].dataset.t;
     links.forEach(a => {
       const el = document.getElementById(a.dataset.t);
       if(el && el.getBoundingClientRect().top + window.scrollY <= line) cur = a.dataset.t;
     });
-    links.forEach(a => a.classList.toggle("on", a.dataset.t === cur));
+    setActive(cur);
   }
+
   let tk; window.addEventListener("scroll", () => { clearTimeout(tk); tk = setTimeout(mark, 70); }, {passive:true});
-  mark();
+  window.addEventListener("resize", () => { mark(); }); buildJump(); mark();
+  return buildJump;                    // 絞り込み・並べ替えのあとに呼び直す
 })();
 
 window.addEventListener("resize",()=>setTimeout(fit,150));
