@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nobukuru114.github.io/hotel-price-world/sitemap.xml
