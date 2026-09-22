@@ -171,6 +171,13 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 .ctrypage a{color:var(--accent);text-decoration:none;background:var(--accent-soft);
   padding:5px 11px;border-radius:8px;display:inline-block}
 .ctrypage a:hover{background:var(--accent);color:#fff}
+.floathead{position:fixed;z-index:690;overflow:hidden;background:var(--card);
+  border-bottom:1px solid var(--line);box-shadow:0 4px 10px rgba(16,24,40,.07)}
+.floathead[hidden]{display:none}
+.floathead table{margin:0;background:var(--card)}
+.floathead th{position:static;top:auto}
+body.mapfull .floathead{display:none}
+@media(max-width:1080px){ .floathead{display:none} }
 .secnav{position:sticky;top:0;z-index:700;padding:10px 0 8px;background:var(--bg)}
 .secnav-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .secnav .jumprow{margin-top:6px;gap:5px}
@@ -259,7 +266,7 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
     <button type="button" id="favonly" class="favonly">★のみ</button>
     <span class="count" id="count"></span>
   </div>
-  <div class="tablewrap">
+  <div class="tablewrap" id="rankwrap">
     <table id="rank">
       <colgroup id="rankcols"></colgroup>
       <thead><tr id="rankhead"></tr></thead>
@@ -322,6 +329,9 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 </aside>
 </div>
 <div class="mapback" id="mapback" hidden></div>
+<div class="floathead" id="floathead" aria-hidden="true" hidden>
+  <table><colgroup></colgroup><thead><tr></tr></thead></table>
+</div>
 
 <footer class="sitefoot">
   <span>価格は 2026-09-21 時点の調査値です。実際の料金は予約サイトでご確認ください。</span>
@@ -524,6 +534,7 @@ function paintTable(){
   document.getElementById("count").textContent = list.length + " 件を表示";
   tb.innerHTML = list.map(d => cityRow(d, true)).join("");
   if(navJump) navJump();          // 位置ジャンプのチップを表示件数に合わせ直す
+  if(window.__syncFloatHead) window.__syncFloatHead();
 }
 
 function paintBands(){
@@ -843,6 +854,69 @@ paintBandMonth();
 paintBands(); paintTable(); paintCountries(); paintMap(); paintFocusBadge(); paintFavBtn();
 requestAnimationFrame(fit); setTimeout(fit,300); setTimeout(fit,1200);
 window.addEventListener("load",()=>setTimeout(fit,100));
+// ---- ランキングの見出しを画面に固定（本物の見出しの複製を浮かせる） ----
+// .tablewrap が横スクロール用のコンテナなので、本物の thead は sticky が効かない。
+// そこで同じ見出しを position:fixed で複製し、本物が画面外に出ている間だけ表示する。
+(function(){
+  const wrap  = document.getElementById("rankwrap");
+  const table = document.getElementById("rank");
+  const fh    = document.getElementById("floathead");
+  const nav   = document.getElementById("secnav");
+  const sec   = document.getElementById("sec-rank");
+  if(!wrap || !table || !fh) return;
+  const fhTable = fh.querySelector("table");
+  let cache = null;
+
+  const navOffset = () =>
+    (nav && getComputedStyle(nav).position === "sticky") ? nav.offsetHeight : 0;
+
+  function build(){
+    const head = table.querySelector("thead").innerHTML;
+    if(head === cache) return;
+    cache = head;
+    fhTable.querySelector("colgroup").innerHTML = table.querySelector("colgroup").innerHTML;
+    fhTable.querySelector("thead").innerHTML = head;
+    fhTable.querySelectorAll("[id]").forEach(e => e.removeAttribute("id"));  // id の重複を避ける
+  }
+
+  function sync(){
+    if(window.innerWidth <= 1080 || document.body.classList.contains("mapfull") || (sec && !sec.open)){
+      fh.hidden = true; return;
+    }
+    build();
+    const top = navOffset();
+    const wr  = wrap.getBoundingClientRect();
+    const hr  = table.querySelector("thead").getBoundingClientRect();
+    const h   = Math.round(hr.height) || 34;
+    const show = hr.top < top && wr.bottom > top + h + 8;   // 見出しが隠れ、表本体はまだ見えている
+    fh.hidden = !show;
+    if(!show) return;
+    fh.style.top    = top + "px";
+    fh.style.left   = wr.left + "px";
+    fh.style.width  = wr.width + "px";
+    fh.style.height = h + "px";
+    fhTable.style.width = table.offsetWidth + "px";
+    fhTable.style.marginLeft = (-wrap.scrollLeft) + "px";
+  }
+
+  fh.addEventListener("click", ev => {
+    const th = ev.target.closest("th");
+    if(!th) return;
+    const i = [...fhTable.querySelectorAll("thead th")].indexOf(th);
+    const real = table.querySelectorAll("thead th")[i];
+    if(real) real.click();          // 並べ替えは本物の見出しに委譲
+  });
+
+  let raf = 0;
+  const onScroll = () => { if(raf) return; raf = requestAnimationFrame(() => { raf = 0; sync(); }); };
+  window.addEventListener("scroll", onScroll, {passive:true});
+  wrap.addEventListener("scroll", onScroll, {passive:true});
+  window.addEventListener("resize", () => { cache = null; sync(); });
+  sec && sec.addEventListener("toggle", sync);
+  window.__syncFloatHead = sync;
+  sync();
+})();
+
 // ---- セクションジャンプ＋位置ジャンプ ----
 var navJump = null;
 navJump = (function(){
