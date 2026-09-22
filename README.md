@@ -9,7 +9,11 @@
 | `privacy.html` | プライバシーポリシー（localStorage の用途を明記） |
 | `about.html` | 運営者情報（運営者名・連絡先は未記入） |
 | `page.css` | 上記3ページ共通のスタイル |
-| `robots.txt` / `sitemap.xml` | 検索エンジン向け |
+| `city/*.html` | 都市別ページ347枚（`tools/build-city-pages.js` の生成物。**手で編集しない**） |
+| `tools/build-city-pages.js` | 都市別ページ・sitemap の生成スクリプト（正本は index.html の DATA） |
+| `tools/slugs.json` | 都市キー→URLスラッグ対応表（生成物） |
+| `favicon.svg` | サイトアイコン |
+| `robots.txt` / `sitemap.xml` | 検索エンジン向け（sitemap は生成物・350URL） |
 | `booking-annual-all.json` | 347都市の元データ（年間中央値・月別12点・掲載数・座標） |
 | `booking-annual-12month.json` | 先行取得した101都市分（BYT値との比較列つき） |
 | `booking-median-comparison.json` | 3日程版（初期調査・参考） |
@@ -21,7 +25,8 @@
 | 操作 | 結果 |
 |---|---|
 | レイアウト | 広い画面=左に一覧・右に地図を固定表示（追従）／1080px以下=地図が画面上部に固定 |
-| 地図スタイルの切替 | 地図ヘッダーのセレクトで「淡色（見やすい・既定）」と「標準（OSM）」を切替。選択はブラウザに保存 |
+| 地図スタイルの切替 | 地図ヘッダーのセレクトで「標準（OSM・既定）」と「淡色（見やすい）」を切替。選択はブラウザに保存 |
+| 「詳細」リンク | 各行の右端。その都市の月別価格・最安時期・同国の他都市をまとめたページへ（Googleマップは地図の吹き出しと詳細ページから） |
 | 「全画面」ボタン | 地図をウィンドウ全体に拡大（背景クリックまたは Esc で戻る） |
 | 価格帯の分布カード | 選択月の価格で件数を集計し、クリックでの絞り込みも選択月基準（見出しに対象月を表示。欠測月は年間中央値で代替） |
 | 地図マーカーの色 | 選択月の価格帯で着色（月セレクトに連動）。データのない月は年間中央値の色で代替。吹き出しに選択月の価格と年間中央値を併記 |
@@ -84,4 +89,6 @@
 | ホスティング | GitHub Pages（リポジトリ nobukuru114/hotel-price-world） |
 | 公開URL | https://nobukuru114.github.io/hotel-price-world/ |
 | 公開日 | 2026-09-22 |
-| 公開前の残作業 | about.html の運営者名・連絡先を記入 |
+| 運営者情報 | ハンドル名 nobukuru114・問い合わせは GitHub Issues（本名・住所・メールは非公開） |
+| 都市別ページ | 347枚。再生成は `node tools/build-city-pages.js` |
+| 次の施策 | Search Console 登録→sitemap 送信・国別ページ120枚・構造化データ拡充 |
