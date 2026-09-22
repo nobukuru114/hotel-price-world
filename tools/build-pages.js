@@ -27,12 +27,12 @@ const MONTHS = ["26/10","26/11","26/12","27/01","27/02","27/03","27/04","27/05",
 const MORDER = [3,4,5,6,7,8,9,10,11,0,1,2];              // 表示順(1月→12月) → データ添字
 const YEAR   = i => (i <= 8 ? 2027 : 2026);              // 1〜9月=2027, 10〜12月=2026
 const BANDS = [
-  {max:5000,   label:"〜¥5,000",        c:"#0e9f6e"},
-  {max:10000,  label:"¥5,000〜10,000",  c:"#5aab34"},
-  {max:15000,  label:"¥10,000〜15,000", c:"#c9a227"},
-  {max:20000,  label:"¥15,000〜20,000", c:"#e07b39"},
-  {max:30000,  label:"¥20,000〜30,000", c:"#d4553e"},
-  {max:Infinity,label:"¥30,000〜",      c:"#8b3a62"}
+  {max:5000,   label:"〜¥5,000",        c:"var(--b1)"},
+  {max:10000,  label:"¥5,000〜10,000",  c:"var(--b2)"},
+  {max:15000,  label:"¥10,000〜15,000", c:"var(--b3)"},
+  {max:20000,  label:"¥15,000〜20,000", c:"var(--b4)"},
+  {max:30000,  label:"¥20,000〜30,000", c:"var(--b5)"},
+  {max:Infinity,label:"¥30,000〜",      c:"var(--b6)"}
 ];
 const bandOf = v => BANDS.findIndex(b => v <= b.max);   // index.html と同じ判定（上限を含む）
 const esc  = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
@@ -176,7 +176,9 @@ DATA.forEach(d => {
 <link rel="stylesheet" href="../page.css">
 <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <script type="application/ld+json">${JSON.stringify(jsonld)}</script>
-</head><body><div class="wrap">
+</head><body>
+<nav class="topbar"><div class="tbwrap"><a class="brand" href="../"><i>¥</i>Hotel Price World</a><a class="tl" href="../#sec-rank">ランキング</a><a class="tl" href="../#sec-country">国・地域別</a><a class="tl" href="../disclaimer.html">データについて</a></div></nav>
+<div class="wrap">
 
 <nav class="crumb"><a href="../">世界都市 ホテル価格ランキング</a> › <span>${cflag(d)} ${esc(cname(d))}</span> › <span>${disp}</span></nav>
 
@@ -314,7 +316,9 @@ COUNTRIES.forEach(k => {
 <link rel="stylesheet" href="../page.css">
 <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <script type="application/ld+json">${JSON.stringify(jsonld)}</script>
-</head><body><div class="wrap">
+</head><body>
+<nav class="topbar"><div class="tbwrap"><a class="brand" href="../"><i>¥</i>Hotel Price World</a><a class="tl" href="../#sec-rank">ランキング</a><a class="tl" href="../#sec-country">国・地域別</a><a class="tl" href="../disclaimer.html">データについて</a></div></nav>
+<div class="wrap">
 
 <nav class="crumb"><a href="../">世界都市 ホテル価格ランキング</a> › <span>${k.flag} ${esc(k.ja)}</span></nav>
 

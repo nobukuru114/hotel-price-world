@@ -17,266 +17,347 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{
-  --bg:#f6f7f9; --card:#fff; --ink:#15181d; --sub:#5b6472; --line:#e3e7ee;
-  --accent:#1a6ef5; --accent-soft:#e8f0ff;
-  --b1:#0e9f6e; --b2:#5aab34; --b3:#c9a227; --b4:#e07b39; --b5:#d4553e; --b6:#8b3a62;
-  --b1s:#e6f6ef; --b2s:#eef6e6; --b3s:#faf3df; --b4s:#fdeee2; --b5s:#fceae6; --b6s:#f7e9f0;
-  --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.06);
+  --bg:#f3f4f7; --card:#fff; --ink:#0f172a; --sub:#64748b; --line:#e5e8ef; --line2:#eef0f5;
+  --accent:#2563eb; --accent-soft:#e6eeff;
+  --navy:#0b1220; --onnavy:#e6ebf5; --onnavy2:#94a3b8; --glass:rgba(255,255,255,.06); --glassb:rgba(255,255,255,.12);
+  --b1:#059669; --b2:#65a30d; --b3:#ca8a04; --b4:#ea580c; --b5:#dc2626; --b6:#9d174d;
+  --b1s:#d1fae5; --b2s:#ecfccb; --b3s:#fef3c7; --b4s:#ffedd5; --b5s:#fee2e2; --b6s:#fce7f3;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 10px 30px -12px rgba(15,23,42,.12);
+  --r:20px; --pill:#fff; --mapfilter:saturate(.6) contrast(.93); --tbh:54px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1115; --card:#171a20; --ink:#e8ecf2; --sub:#9aa4b2; --line:#272c35;
-  --accent:#6aa2ff; --accent-soft:#1b2740;
-  --b1:#34d399; --b2:#9ccc65; --b3:#eab308; --b4:#fb923c; --b5:#f87171; --b6:#e879b9;
+  --bg:#0a0e16; --card:#111826; --ink:#e7ebf3; --sub:#8b96a8; --line:#1f2938; --line2:#18202e;
+  --accent:#6aa2ff; --accent-soft:#16233d; --navy:#070b13;
+  --b1:#22c58a; --b2:#a3e635; --b3:#facc15; --b4:#fb923c; --b5:#f87171; --b6:#f472b6;
   --b1s:#13291f; --b2s:#1d2a16; --b3s:#2c2510; --b4s:#2e1f12; --b5s:#2e1717; --b6s:#2b1622;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.35);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px -14px rgba(0,0,0,.6); --pill:#0a0e16; --mapfilter:none;
 }}
 :root[data-theme="dark"]{
-  --bg:#0f1115; --card:#171a20; --ink:#e8ecf2; --sub:#9aa4b2; --line:#272c35;
-  --accent:#6aa2ff; --accent-soft:#1b2740;
-  --b1:#34d399; --b2:#9ccc65; --b3:#eab308; --b4:#fb923c; --b5:#f87171; --b6:#e879b9;
+  --bg:#0a0e16; --card:#111826; --ink:#e7ebf3; --sub:#8b96a8; --line:#1f2938; --line2:#18202e;
+  --accent:#6aa2ff; --accent-soft:#16233d; --navy:#070b13;
+  --b1:#22c58a; --b2:#a3e635; --b3:#facc15; --b4:#fb923c; --b5:#f87171; --b6:#f472b6;
   --b1s:#13291f; --b2s:#1d2a16; --b3s:#2c2510; --b4s:#2e1f12; --b5s:#2e1717; --b6s:#2b1622;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.35);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px -14px rgba(0,0,0,.6); --pill:#0a0e16; --mapfilter:none;
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);
- font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
- line-height:1.6;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1560px;margin:0 auto;padding:28px 16px 80px}
-header h1{font-size:clamp(20px,3.4vw,30px);margin:0 0 6px;letter-spacing:-.02em}
-.lead{color:var(--sub);font-size:14px;margin:0 0 10px;max-width:80ch}
-.why4note{font-size:13px;color:var(--sub);margin:0 0 18px;max-width:80ch;line-height:1.7;
-  border-left:3px solid var(--accent);padding-left:11px}
-.why4note b{color:var(--ink)}
-header{position:relative}
-.themebtn{position:absolute;right:0;top:2px;font-family:inherit;font-size:12px;color:var(--sub);
-  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
-.themebtn:hover{color:var(--accent);border-color:var(--accent)}
-@media(max-width:600px){.themebtn{position:static;margin-bottom:8px}}
-.stale{font-size:13px;margin:0 0 14px;padding:8px 12px;border-radius:9px;
-  background:var(--b4s);color:var(--b4);border:1px solid var(--b4)}
-.stale b{font-weight:700}
-.why4note a{color:var(--accent);text-decoration:none;white-space:nowrap}
+ font-family:-apple-system,BlinkMacSystemFont,"Inter","Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
+ line-height:1.55;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+a{color:inherit}
+.wrap{max-width:1560px;margin:0 auto;padding:0 28px}
+/* ---- 上部固定バー（ロゴ・セクション移動・位置ジャンプ・表示モード） ---- */
+.topbar{position:sticky;top:0;z-index:700;background:rgba(11,18,32,.86);backdrop-filter:saturate(1.4) blur(14px);
+ -webkit-backdrop-filter:saturate(1.4) blur(14px);color:var(--onnavy);border-bottom:1px solid rgba(255,255,255,.06)}
+.topbar .wrap{display:flex;align-items:center;gap:18px;min-height:54px;flex-wrap:wrap;padding-top:6px;padding-bottom:6px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;font-size:14.5px;text-decoration:none;white-space:nowrap;color:#fff}
+.brand i{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;
+ background:linear-gradient(135deg,#059669,#ca8a04 55%,#9d174d);font-style:normal;font-size:13px;color:#fff;font-weight:800}
+.secnav{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
+.secnav-row{display:flex;gap:2px;flex-wrap:wrap;align-items:center}
+.secnav a{font-size:13px;color:var(--onnavy2);text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap}
+.secnav a:hover{color:#fff;background:rgba(255,255,255,.08)}
+.secnav a:focus:not(:focus-visible){outline:none}
+.secnav a.on{color:#fff;background:rgba(255,255,255,.14);font-weight:600}
+.jumprow{gap:4px;padding-left:12px;border-left:1px solid rgba(255,255,255,.12)}
+.jlabel{font-size:11px;color:var(--onnavy2);white-space:nowrap;margin-right:4px}
+.jchips{display:flex;gap:4px;flex-wrap:wrap}
+.jchip{font-family:inherit;font-size:11px;color:var(--onnavy2);background:transparent;border:1px solid rgba(255,255,255,.14);
+ border-radius:7px;padding:2px 7px;cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums}
+.jchip:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+.jchip.on{color:#fff;border-color:#fff;font-weight:600}
+.jumprow[hidden],.jchips:empty{display:none}
+.themebtn{margin-left:auto;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;
+ border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap}
+.themebtn:hover{color:#fff;border-color:rgba(255,255,255,.45)}
+/* ---- ヒーロー ---- */
+.hero{background:radial-gradient(1000px 420px at 8% -10%,rgba(37,99,235,.45),transparent 60%),
+ radial-gradient(800px 420px at 92% 110%,rgba(157,23,77,.42),transparent 60%),
+ radial-gradient(600px 300px at 55% 0%,rgba(5,150,105,.22),transparent 60%),var(--navy);
+ color:var(--onnavy);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+ background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+ background-size:56px 56px;-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 85%);mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 85%)}
+.hero .wrap{position:relative;z-index:1}
+.herogrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px;align-items:end;padding:52px 0 26px}
+.eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--onnavy2);margin:0 0 16px;font-weight:600}
+.eyebrow b{color:#fff;font-weight:700}
+.hero h1{font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;font-weight:600;
+ font-size:clamp(30px,4.2vw,54px);line-height:1.18;letter-spacing:.01em;margin:0 0 18px;color:#fff}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,#86efac,#fde68a 50%,#f9a8d4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:15px;color:var(--onnavy2);margin:0 0 14px;max-width:62ch;line-height:1.75}
+.why4note{font-size:12.5px;color:var(--onnavy2);margin:0;max-width:66ch;line-height:1.7;padding-left:12px;border-left:2px solid rgba(255,255,255,.25)}
+.why4note b{color:#fff}
+.why4note a{color:#93c5fd;text-decoration:none;white-space:nowrap}
 .why4note a:hover{text-decoration:underline}
-.meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
-.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;
- padding:5px 12px;font-size:12px;color:var(--sub);box-shadow:var(--shadow)}
-.chip b{color:var(--ink);font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
- padding:18px;margin-bottom:20px;box-shadow:var(--shadow)}
-.card h2{font-size:17px;margin:0 0 4px;letter-spacing:-.01em}
-.card .hint{color:var(--sub);font-size:12.5px;margin:0 0 14px}
-.bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-bottom:6px}
-.bandbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;
- background:var(--bg);transition:transform .08s}
-.bandbox:hover{transform:translateY(-1px)}
-.bandbox[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:-2px}
-.bandbox .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
-.bandbox .lb{font-size:11.5px;color:var(--sub)}
-.bandbox .ct{font-size:19px;font-weight:700;letter-spacing:-.02em}
-.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.tools input,.tools select{background:var(--bg);border:1px solid var(--line);color:var(--ink);
- border-radius:9px;padding:7px 11px;font-size:13px;font-family:inherit}
-.tools input{min-width:190px}
-.tools .count{font-size:12.5px;color:var(--sub);margin-left:auto}
-#map{height:calc(100vh - 232px);min-height:430px;max-height:780px;
- border-radius:12px;border:1px solid var(--line);z-index:0}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,34vw,640px);gap:18px;align-items:start}
-.col-side{position:sticky;top:14px;z-index:600}
-.mapcard{margin-bottom:0}
-.maphead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.maphead h2{margin:0}
-.mapbtns{display:flex;gap:6px}
-.maphead button{background:transparent;border:1px solid var(--line);color:var(--sub);
- border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit}
-.maphead button:hover{color:var(--ink);border-color:var(--accent)}
-.maphint{margin:10px 0 0}
-.mapcard.full{position:fixed;inset:10px;width:auto!important;max-width:none;z-index:2000;margin:0;display:flex;flex-direction:column;overflow:hidden}
-.mapcard.full #map{flex:1;width:100%;height:auto;aspect-ratio:auto;max-height:none;min-height:0}
-.mapcard.full .maphint{display:none}
-.mapback{position:fixed;inset:0;background:rgba(10,14,22,.45);z-index:1999}
-body.mapfull .col-side{z-index:2001}
-.mapback[hidden]{display:none}
-.sec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--glass);border:1px solid var(--glassb);border-radius:18px;padding:18px 20px 16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.kpi small{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--onnavy2);font-weight:600}
+.kpi b{display:block;font-size:clamp(28px,2.8vw,40px);font-weight:700;letter-spacing:-.04em;line-height:1.1;margin:8px 0 4px;color:#fff}
+.kpi span,.kpi a{font-size:12.5px;color:var(--onnavy2);text-decoration:none;border-bottom:1px dotted transparent}
+.kpi a:hover{color:#fff;border-bottom-color:#fff}
+.kpi.lo b{color:#86efac}.kpi.hi b{color:#f9a8d4}.kpi.now b{color:#fde68a}
+.stale{font-size:13px;margin:0 0 16px;padding:9px 14px;border-radius:10px;background:rgba(251,146,60,.14);color:#fdba74;border:1px solid rgba(251,146,60,.4)}
+.stale b{font-weight:700;color:#fff}
+/* 価格帯の分布（ヒーロー下端） */
+.spectrum{padding:4px 0 34px}
+.spectrum .lbl{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.spectrum h2{margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--onnavy2);font-weight:700}
+.spectrum h2 span{font-size:12px;letter-spacing:0;text-transform:none;font-weight:500;margin-left:6px}
+.spectrum .hint{font-size:12px;color:var(--onnavy2);margin:0}
+.bands{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.bandbox{position:relative;border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+ cursor:pointer;overflow:hidden;transition:transform .12s,background .12s;color:var(--onnavy)}
+.bandbox::before{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--bc)}
+.bandbox::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--bc) 22%,transparent));opacity:.7}
+.bandbox:hover{transform:translateY(-2px);background:rgba(255,255,255,.09)}
+.bandbox[aria-pressed="true"]{background:rgba(255,255,255,.16);outline:2px solid #fff;outline-offset:-2px}
+.bandbox .lb{font-size:12px;color:var(--onnavy2);font-weight:600;white-space:nowrap;position:relative;z-index:1}
+.bandbox .ct{font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1.1;color:#fff;position:relative;z-index:1;margin-top:4px}
+.bandbox .ct small{font-size:12px;font-weight:600;letter-spacing:0;margin-left:4px;color:var(--onnavy2)}
+.bandbox .bar{position:relative;z-index:1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);margin-top:10px}
+.bandbox .bar i{display:block;height:100%;border-radius:2px;background:var(--bc)}
+/* ---- 本文レイアウト ---- */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,32vw,600px);gap:22px;align-items:start;padding-top:24px;padding-bottom:40px}
+.col-side{position:sticky;top:calc(var(--tbh) + 12px);z-index:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:22px;padding:0}
+.card h2{font-size:21px;margin:0;letter-spacing:-.02em;font-weight:800}
+.hint{color:var(--sub);font-size:12.5px;margin:6px 24px 0}
+.sec>summary{cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:14px;padding:22px 24px 0}
 .sec>summary::-webkit-details-marker{display:none}
-.sec>summary::after{content:"▾";margin-left:auto;color:var(--sub);font-size:12px}
+.sec>summary::after{content:"▾";margin-left:auto;color:var(--sub);font-size:12px;align-self:center}
+.sec:not([open])>summary{padding-bottom:20px}
 .sec:not([open])>summary::after{content:"▸"}
-.sec>summary h2{margin:0}
 .sec>summary:hover h2{color:var(--accent)}
-.secnote{font-size:12px;color:var(--sub);font-weight:500}
-.secbody{margin-top:12px}
-.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:600px;table-layout:fixed}
-td.city,td.ctry{white-space:normal;word-break:break-word}
-th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-th{position:sticky;top:0;background:var(--card);font-size:12px;color:var(--sub);
- font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;z-index:1}
+.secnote{font-size:12.5px;color:var(--sub);font-weight:500}
+.secbody{margin-top:0}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:16px 24px 14px}
+.tools input,.tools select,.favonly{background:var(--bg);border:1px solid transparent;color:var(--ink);
+ border-radius:12px;padding:9px 13px;font-size:13px;font-family:inherit;font-weight:500}
+.tools input{min-width:200px;background:var(--card);border-color:var(--line)}
+.tools input:focus,.tools select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.tools .count{font-size:12.5px;color:var(--sub);margin-left:auto;font-weight:600}
+.favonly{cursor:pointer;color:var(--sub)}
+.favonly.on{border-color:#f0a020;color:#f0a020;font-weight:700}
+.favonly:disabled{opacity:.45;cursor:default}
+/* ---- 表 ---- */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 10px}
+table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:640px;font-size:13.5px}
+th{font-size:11px;color:var(--sub);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px 10px;
+ border-bottom:1px solid var(--line);white-space:nowrap;text-align:left;line-height:1.25;cursor:pointer;user-select:none;position:static;background:var(--card)}
+th small{display:block;font-size:10px;font-weight:500;letter-spacing:.02em;text-transform:none;color:var(--sub);opacity:.8}
 th.sorted::after{content:" ▾";color:var(--accent)}
 th.sorted.asc::after{content:" ▴"}
-td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-tr:hover td{filter:brightness(.98)}
-.rank{font-weight:700;color:var(--sub);width:46px;text-align:right}
-.city{font-weight:600}
-.flag{margin-right:6px}
-@media(min-width:1251px){ td.city{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} }   /* 広い画面: 1行固定・長い名前は…（全文は title） */
-@media(max-width:1250px){ td.city{white-space:normal} td.lnk a{padding:2px 2px;margin:1px 0;letter-spacing:-.04em} }                    /* 狭い画面: 折り返して全文表示 */
-@media(max-width:1400px){                                                                            /* 中幅: 都市列とリンク列を優先して配分 */
-  #rank col:nth-child(1){width:3.5% !important}  #rank col:nth-child(2){width:22% !important}
-  #rank col:nth-child(3){width:9.5% !important}  #rank col:nth-child(4){width:9.5% !important}
-  #rank col:nth-child(5){width:8% !important}    #rank col:nth-child(6){width:8.5% !important}
-  #rank col:nth-child(7){width:6% !important}    #rank col:nth-child(8){width:6% !important}
-  #rank col:nth-child(9){width:4.75% !important} #rank col:nth-child(10){width:5.25% !important}
-  #rank col:nth-child(11){width:17% !important}
-}
-.en{display:none;color:var(--sub);font-size:11px;margin-left:5px}
-@media(min-width:1800px){.en{display:inline}}   /* 英語名は幅に余裕があるときだけ併記（行高を増やさない） */
-.pricecell{font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;
- padding:3px 9px;display:inline-block;min-width:78px;text-align:right}
-.rng{color:var(--sub);font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.spark{display:block;width:100%;max-width:96px;height:auto;overflow:visible;cursor:crosshair;touch-action:none}
-.nowcell{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600;white-space:nowrap}
-.spk-lo{fill:var(--b1);stroke:var(--card);stroke-width:.9}
-.spk-hi{fill:var(--b5);stroke:var(--card);stroke-width:.9}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line2);vertical-align:middle;text-align:left}
+tbody tr:hover td{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+td.rank,.rank{color:var(--sub);font-weight:700;text-align:right;font-size:12.5px}
+td.city{font-weight:700;font-size:14.5px}
+.citylink{cursor:pointer;color:inherit;text-decoration:none;border-bottom:1px dotted transparent}
+.citylink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.en{display:none;color:var(--sub);font-size:11px;margin-left:5px;font-weight:500}
+@media(min-width:1800px){.en{display:inline}}
+@media(min-width:1251px){ td.city{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} td.ctry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} }
+@media(max-width:1250px){ td.city,td.ctry{white-space:normal;word-break:break-word} }
+td.ctry{font-size:12.5px;color:var(--sub);letter-spacing:-.01em}
+.flag{margin-right:5px}
+.ctrylink{cursor:pointer;border-bottom:1px dotted transparent}
+.ctrylink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.pricecell{display:inline-block;min-width:82px;text-align:right;padding:4px 10px;border-radius:9px;color:var(--pill);
+ font-weight:800;font-size:13px;letter-spacing:-.01em;font-variant-numeric:tabular-nums;box-shadow:inset 0 -1px 0 rgba(0,0,0,.12)}
+.nowcell{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent)}
+.rng{color:var(--sub);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.seas{color:var(--sub);font-size:12.5px;font-variant-numeric:tabular-nums}
+.spark{display:block;width:100%;max-width:104px;height:auto;overflow:visible;cursor:crosshair;touch-action:none}
+.spk-lo{fill:var(--b1);stroke:var(--card);stroke-width:1}
+.spk-hi{fill:var(--b5);stroke:var(--card);stroke-width:1}
 .spk-cur{fill:var(--ink);stroke:var(--card);stroke-width:1.2}
-.spk-now-l{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 2;opacity:.5}
-.spk-now{fill:none;stroke:var(--accent);stroke-width:1.5}
-#sparktip{position:fixed;z-index:3000;display:none;pointer-events:none;
-  background:var(--ink);color:var(--card);border-radius:8px;padding:5px 9px;font-size:12px;
-  white-space:nowrap;box-shadow:var(--shadow);font-variant-numeric:tabular-nums}
+.spk-now-l{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 2;opacity:.55}
+.spk-now{fill:var(--card);stroke:var(--accent);stroke-width:1.6}
+#sparktip{position:fixed;z-index:3000;display:none;pointer-events:none;background:var(--ink);color:var(--card);
+ border-radius:8px;padding:5px 9px;font-size:12px;white-space:nowrap;box-shadow:var(--shadow);font-variant-numeric:tabular-nums}
 #sparktip b{font-weight:700;margin-right:6px}
-.seas{font-variant-numeric:tabular-nums}
 .lnk{white-space:nowrap}
-.lnk a{color:var(--accent);text-decoration:none;font-size:11.5px;
- border:1px solid var(--line);padding:2px 4px;border-radius:6px;white-space:nowrap;display:inline-block;margin:1px 1px 1px 0;letter-spacing:-.02em}
-.lnk a.detail{background:var(--accent-soft);border-color:transparent;font-weight:600}
-.lnk a:hover{background:var(--accent-soft)}
-details.country{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:var(--bg);overflow:hidden}
-details.country>summary{cursor:pointer;padding:12px 14px;font-weight:600;font-size:14px;
- display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none}
+.lnk a{display:inline-block;text-decoration:none;font-size:11px;font-weight:700;padding:4px 6px;border-radius:8px;margin-right:2px;
+ border:1px solid var(--line);color:var(--sub);letter-spacing:-.01em;white-space:nowrap}
+.lnk a:hover{color:var(--accent);border-color:var(--accent)}
+.lnk a.detail{background:var(--ink);color:var(--card);border-color:var(--ink);margin-right:0}
+.lnk a.detail:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+tr.favrow td{background:rgba(240,160,32,.12)}
+tr.cityfocus td{background:var(--accent-soft)}
+tr.cityfocus .citylink{color:var(--accent);border-bottom-color:var(--accent)}
+.favmark{color:#f0a020;margin-right:4px;font-size:14px}
+.stbtn{background:none;border:0;padding:0 5px 0 0;font-size:15px;line-height:1;cursor:pointer;color:var(--sub);opacity:.35;font-family:inherit;vertical-align:-1px}
+.stbtn.on{opacity:1;color:#f0a020}
+.stbtn:hover{color:#f0a020;opacity:1}
+/* ---- 国・地域別 ---- */
+.axisrow{display:grid;grid-template-columns:52px 190px minmax(0,1fr) 108px 150px;gap:14px;padding:6px 24px 0}
+.axis{position:relative;height:16px;font-size:10.5px;color:var(--sub)}
+.axis span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.axis span:first-child{transform:none}.axis span:last-child{transform:translateX(-100%)}
+#bycountry{padding:0 10px 16px}
+details.country{border-bottom:1px solid var(--line2);border-radius:0;margin:0;background:transparent}
+details.country>summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:52px 190px minmax(0,1fr) 108px 150px;gap:14px;align-items:center;padding:11px 14px}
 details.country>summary::-webkit-details-marker{display:none}
-details.country>summary .cmeta{font-weight:500;font-size:12px;color:var(--sub);text-align:right}
-details.country[open]>summary{border-bottom:1px solid var(--line);background:var(--card)}
-details.country .inner{padding:0 14px 10px}
+details.country>summary:hover .nm{color:var(--accent)}
+details.country[open]{background:var(--bg);border-radius:14px;margin:4px 0}
+details.country .cr{color:var(--sub);font-weight:700;font-size:12.5px;text-align:right;white-space:nowrap}
+details.country .nm{font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.country .nm small{display:block;font-size:11.5px;color:var(--sub);font-weight:500}
+.track{position:relative;height:8px;border-radius:4px;background:var(--line2)}
+details.country[open] .track{background:var(--line)}
+.track i{position:absolute;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,var(--c1),var(--c2));opacity:.85}
+.track b{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--card);border:3px solid var(--cm);transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--card)}
+details.country .md{font-size:20px;font-weight:800;letter-spacing:-.03em;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+details.country .cheap{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.country .cheap b{display:block;color:var(--ink);font-size:12.5px;font-weight:600}
+details.country.focused{box-shadow:0 0 0 1px var(--accent) inset;border-radius:14px}
+details.country .inner{padding:0 14px 12px}
 details.country table{min-width:540px}
+details.country .tablewrap{padding:0}
+.favbtn{background:none;border:0;padding:0 6px 0 0;font-size:16px;line-height:1;cursor:pointer;color:var(--sub);opacity:.45;font-family:inherit;vertical-align:-2px}
+.favbtn.on{color:#f0a020;opacity:1}
+.favbtn:hover{color:#f0a020;opacity:1}
+.ctrypage{margin:0 0 10px;font-size:13px}
+.ctrypage a{color:var(--accent);text-decoration:none;background:var(--accent-soft);padding:5px 11px;border-radius:8px;display:inline-block}
+.ctrypage a:hover{background:var(--accent);color:#fff}
+/* ---- 地図 ---- */
+.mapcard{padding:14px;overflow:hidden;margin-bottom:0}
+.maphead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 6px 12px}
+.maphead h2{font-size:16px}
+.mapbtns{display:flex;gap:6px}
+.maphead button,#tilesel{font-family:inherit;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--sub);cursor:pointer}
+.maphead button:hover,#tilesel:hover{color:var(--ink);border-color:var(--accent)}
+.mapfocus{display:flex;align-items:center;gap:10px;margin:0 0 10px;height:36px;padding:0 12px;border:1px solid var(--accent);
+ border-radius:10px;background:var(--accent-soft);font-size:13px;white-space:nowrap;overflow:hidden}
+.mapfocus.idle{border-color:var(--line);background:var(--bg);color:var(--sub)}
+.mapfocus .mftxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mapfocus button{background:transparent;border:1px solid var(--line);color:var(--sub);border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+.mapfocus button:hover{color:var(--ink);border-color:var(--accent)}
+#map{height:calc(100vh - 290px);min-height:420px;max-height:820px;border-radius:14px;z-index:0;background:var(--line2)}
+#map[data-tile="osm"] .leaflet-tile-pane{filter:var(--mapfilter)}
+.leaflet-container{font:inherit}
+.leaflet-popup-content-wrapper{border-radius:12px;font-family:inherit}
+.legend{display:flex;gap:6px;flex-wrap:wrap;padding:12px 4px 0}
+.legend span{font-size:11px;color:var(--sub);background:var(--bg);border-radius:999px;padding:3px 9px 3px 6px;font-weight:600;white-space:nowrap}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.maphint{margin:10px 4px 0;font-size:12px}
+.mapcard.full{position:fixed;inset:10px;width:auto!important;max-width:none;z-index:2000;margin:0;display:flex;flex-direction:column;overflow:hidden}
+.mapcard.full #map{flex:1;width:100%;height:auto;aspect-ratio:auto;max-height:none;min-height:0}
+.mapcard.full .maphint,.mapcard.full .legend{display:none}
+.mapback{position:fixed;inset:0;background:rgba(10,14,22,.55);z-index:1999}
+body.mapfull .col-side{z-index:2001}
+.mapback[hidden]{display:none}
 .halo{animation:halo 1.5s ease-out infinite}
 @keyframes halo{0%{stroke-opacity:.95;stroke-width:3}70%{stroke-opacity:0;stroke-width:10}100%{stroke-opacity:0;stroke-width:10}}
-.favmark{color:#f0a020;margin-right:4px;font-size:15px}
-.stbtn{background:none;border:0;padding:0 5px 0 0;font-size:17px;line-height:1;cursor:pointer;color:var(--sub);opacity:.45;font-family:inherit;vertical-align:-1px}
-.stbtn.on{opacity:1}
-.stbtn.on{color:#f0a020}
-.stbtn:hover{color:#f0a020}
-.favbtn{background:none;border:0;padding:0 7px 0 0;font-size:19px;line-height:1;cursor:pointer;color:var(--sub);opacity:.5;font-family:inherit;vertical-align:-2px}
-.favbtn.on{color:#f0a020;opacity:1}
-.favbtn:hover{color:#f0a020}
-.favonly{background:var(--bg);border:1px solid var(--line);color:var(--sub);
- border-radius:9px;padding:7px 11px;font-size:13px;font-family:inherit;cursor:pointer}
-.favonly.on{border-color:#f0a020;color:#f0a020;font-weight:600}
-.favonly:disabled{opacity:.45;cursor:default}
-.ctrylink{cursor:pointer;border-bottom:1px dotted var(--sub)}
-.ctrylink:hover{color:var(--accent);border-bottom-color:var(--accent)}
-.citylink{cursor:pointer;border-bottom:1px dotted var(--sub);color:inherit;text-decoration:none}
-.citylink:hover{color:var(--accent);border-bottom-color:var(--accent)}
-tr.favrow td{background:rgba(240,160,32,.13)}
-tr.cityfocus{background:var(--b1s)}
-tr.cityfocus td{background:transparent}
-tr.cityfocus .citylink{color:var(--accent);border-bottom-color:var(--accent)}
-details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-.mapfocus{display:flex;align-items:center;gap:10px;margin:0 0 10px;height:36px;
-  padding:0 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg);font-size:13px;
-  white-space:nowrap;overflow:hidden}
-.mapfocus.idle{border-color:var(--line);color:var(--sub)}
-.mapfocus .mftxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.mapfocus button{background:transparent;border:1px solid var(--line);color:var(--sub);
-  border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
-.mapfocus button:hover{color:var(--ink);border-color:var(--accent)}
-#tilesel{font-family:inherit;font-size:12px;color:var(--sub);background:var(--bg);
-  border:1px solid var(--line);border-radius:8px;padding:3px 6px;cursor:pointer;margin-right:6px}
-#tilesel:hover{color:var(--ink);border-color:var(--accent)}
-.ctrypage{margin:0 0 10px;font-size:13px}
-.ctrypage a{color:var(--accent);text-decoration:none;background:var(--accent-soft);
-  padding:5px 11px;border-radius:8px;display:inline-block}
-.ctrypage a:hover{background:var(--accent);color:#fff}
-.floathead{position:fixed;z-index:690;overflow:hidden;background:var(--card);
-  border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;
-  box-shadow:0 6px 14px rgba(16,24,40,.09)}
+/* ---- 浮遊見出し ---- */
+.floathead{position:fixed;z-index:690;overflow:hidden;background:var(--card);border:1px solid var(--line);border-top:none;
+ border-radius:0 0 14px 14px;box-shadow:0 6px 14px rgba(15,23,42,.10)}
 .floathead[hidden]{display:none}
 .floathead table{margin:0;background:var(--card)}
 .floathead th{position:static;top:auto}
 body.mapfull .floathead{display:none}
-@media(max-width:1080px){ .floathead{display:none} }
-.secnav{position:sticky;top:0;z-index:700;padding:10px 0 8px;background:var(--bg)}
-.secnav-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.secnav .jumprow{margin-top:6px;gap:5px}
-.jlabel{font-size:11px;color:var(--sub);white-space:nowrap;margin-right:2px}
-.jchips{display:flex;gap:5px;flex-wrap:wrap}
-.jchip{font-family:inherit;font-size:11.5px;color:var(--sub);background:var(--card);
-  border:1px solid var(--line);border-radius:7px;padding:2px 8px;cursor:pointer;
-  white-space:nowrap;font-variant-numeric:tabular-nums}
-.jchip:hover{color:var(--accent);border-color:var(--accent)}
-.jchip.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:600}
-.jumprow:empty,.jchips:empty{display:none}
-.secnav a{font-size:12.5px;color:var(--sub);text-decoration:none;background:var(--card);
-  border:1px solid var(--line);border-radius:999px;padding:5px 13px;white-space:nowrap;
-  box-shadow:var(--shadow)}
-.secnav a:hover{color:var(--accent);border-color:var(--accent)}
-.secnav a:focus:not(:focus-visible){outline:none}
-.secnav a.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:600}
-@media(max-width:1080px){ .secnav{position:static;padding:4px 0 10px} }
-.sitefoot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
-  display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;
-  font-size:12.5px;color:var(--sub)}
-.sitefoot nav{display:flex;flex-wrap:wrap;gap:16px}
-.sitefoot a{color:var(--sub)}
-.sitefoot a:hover{color:var(--accent)}
-.note{font-size:12.5px;color:var(--sub)}
-.note ul{padding-left:1.1em;margin:8px 0}
-.note li{margin-bottom:5px}
+/* ---- 注意点・フッター ---- */
+.note .secbody{padding:8px 24px 22px}
+.note ul{margin:0;padding-left:1.2em;font-size:13px;color:var(--sub)}
+.note li{margin-bottom:6px}
+.note b{color:var(--ink)}
 .note a{color:var(--accent)}
-.warn{border-left:3px solid var(--b4);padding-left:10px}
-@media(max-width:1080px){
-  .layout{grid-template-columns:1fr}
-  .col-side{order:-1;top:0;background:var(--bg);padding-bottom:8px}
-  #map{height:min(36vh,300px);min-height:0;max-height:none}
+.warn{border-left:3px solid var(--b4);padding-left:10px;list-style:none;margin-left:-1.2em}
+.sitefoot{background:var(--navy);color:var(--onnavy2);padding:26px 0 34px;font-size:12.5px}
+.sitefoot .wrap{display:flex;justify-content:space-between;gap:10px 20px;flex-wrap:wrap;align-items:center}
+.sitefoot nav{display:flex;flex-wrap:wrap;gap:18px}
+.sitefoot a{color:var(--onnavy2);text-decoration:none}
+.sitefoot a:hover{color:#fff}
+/* ---- 幅別 ---- */
+@media(max-width:1400px){
+  #rank col:nth-child(1){width:3.6% !important}  #rank col:nth-child(2){width:19% !important}
+  #rank col:nth-child(3){width:13.4% !important} #rank col:nth-child(4){width:9.6% !important}
+  #rank col:nth-child(5){width:7% !important}    #rank col:nth-child(6){width:8% !important}
+  #rank col:nth-child(7){width:6% !important}    #rank col:nth-child(8){width:6% !important}
+  #rank col:nth-child(9){width:4.4% !important}  #rank col:nth-child(10){width:5% !important}
+  #rank col:nth-child(11){width:18% !important}
+  td.city{font-size:13.5px} td.ctry{white-space:normal;word-break:break-word;font-size:12px}
+  .lnk a{padding:3px 5px;font-size:10.5px;margin-right:1px;letter-spacing:-.03em}
+  .pricecell{min-width:74px;padding:4px 7px;font-size:12.5px}
 }
-@media(max-width:600px){.wrap{padding:20px 12px 60px}.card{padding:14px}#map{height:min(32vh,240px)}}
+@media(max-width:1250px){
+  th,td{padding-left:7px;padding-right:7px}
+  #rank col:nth-child(2){width:15% !important} #rank col:nth-child(3){width:12% !important} #rank col:nth-child(11){width:19% !important}
+}
+@media(max-width:1100px){
+  .herogrid{grid-template-columns:1fr;gap:22px;padding-top:36px}
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .col-main{min-width:0}
+  .col-side{order:-1;position:static}
+  #map{height:min(40vh,340px);min-height:0;max-height:none}
+  .floathead{display:none}
+}
+@media(max-width:900px){
+  .jumprow{display:none}
+  .bands{grid-template-columns:repeat(3,1fr)}
+  .axisrow{display:none}
+  details.country>summary{grid-template-columns:52px minmax(0,1fr) 100px}
+  details.country .track,details.country .cheap{display:none}
+}
+@media(max-width:600px){
+  .wrap{padding:0 14px}
+  .topbar .wrap{gap:10px}
+  .brand span{display:none}
+  .kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:14px 14px 12px;border-radius:14px}
+  .bands{grid-template-columns:repeat(2,1fr)}
+  .hint{margin-left:16px;margin-right:16px}
+  .sec>summary{padding:16px 16px 0}.tools{padding:12px 16px}.tablewrap{padding:0 6px 8px}
+  #map{height:min(34vh,260px)}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <button type="button" id="themebtn" class="themebtn" title="表示モードを切り替え（自動／ライト／ダーク）" aria-label="表示モード"></button>
-  <h1>4つ星ホテル 世界都市 価格ランキング</h1>
-  <p class="lead">Booking.com の実勢価格を12ヶ月分サンプリングし、各都市の4つ星ホテルの年間中央値で並べたものです。2名1室1泊・税込表示・全都市を掲載（価格による足切りなし）。</p>
-  <p class="why4note"><b>なぜ4つ星だけ？</b> 5つ星は掲載が1桁の都市が多く、3つ星は国ごとの品質差が大きいため、どの都市にもまとまった数がある4つ星が最も公平な物差しになるからです。<a href="disclaimer.html#why4">根拠と限界 →</a></p>
-  <p class="stale" id="stale" hidden></p>
-  <div class="meta" id="meta"></div>
-</header>
-
-<div class="layout">
-<main class="col-main">
-
-<nav class="secnav" id="secnav" aria-label="セクション移動">
-  <div class="secnav-row">
-    <a href="#sec-bands" data-t="sec-bands">価格帯の分布</a>
-    <a href="#sec-rank" data-t="sec-rank">ランキング</a>
-    <a href="#sec-country" data-t="sec-country">国・地域別</a>
-    <a href="#sec-note" data-t="sec-note">データと注意点</a>
-  </div>
-  <div class="secnav-row jumprow" id="secnav-jump">
-    <span class="jlabel" id="secnav-jlabel">ランキング内</span>
-    <span class="jchips" id="secnav-jchips"></span>
+<nav class="topbar" id="topbar">
+  <div class="wrap">
+    <a class="brand" href="./"><i>¥</i><span>Hotel Price World</span></a>
+    <nav class="secnav" id="secnav" aria-label="セクション移動">
+      <div class="secnav-row">
+        <a href="#sec-bands" data-t="sec-bands">価格帯</a>
+        <a href="#sec-rank" data-t="sec-rank">ランキング</a>
+        <a href="#sec-country" data-t="sec-country">国・地域別</a>
+        <a href="#sec-note" data-t="sec-note">データと注意点</a>
+      </div>
+      <div class="secnav-row jumprow" id="secnav-jump">
+        <span class="jlabel" id="secnav-jlabel">ランキング内</span>
+        <span class="jchips" id="secnav-jchips"></span>
+      </div>
+    </nav>
+    <button type="button" id="themebtn" class="themebtn" title="表示モードを切り替え（自動／ライト／ダーク）" aria-label="表示モード"></button>
   </div>
 </nav>
 
-<div class="card" id="sec-bands">
-  <h2>価格帯の分布 <span id="bandmonth" style="font-size:13px;font-weight:500;color:var(--sub)"></span></h2>
-  <p class="hint">クリックでその価格帯だけに絞り込み。もう一度押すと解除。月セレクトで対象月を変えると件数も変わります。</p>
-  <div class="bands" id="bands"></div>
-</div>
+<header class="hero">
+  <div class="wrap">
+    <div class="herogrid">
+      <div>
+        <p class="eyebrow" id="meta"></p>
+        <h1>世界の4つ星ホテルは、<br><em>1泊いくら？</em></h1>
+        <p class="lead">世界<span data-n="countries"></span>か国<span data-n="cities"></span>都市の4つ星ホテル価格ランキング。Booking.com の実勢価格を12ヶ月分サンプリングし、各都市の年間中央値で並べました。2名1室1泊・税込表示・全都市を掲載（価格による足切りなし）。</p>
+        <p class="why4note"><b>なぜ4つ星だけ？</b> 5つ星は掲載が1桁の都市が多く、3つ星は国ごとの品質差が大きいため、どの都市にもまとまった数がある4つ星が最も公平な物差しになるからです。<a href="disclaimer.html#why4">根拠と限界 →</a></p>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+    <p class="stale" id="stale" hidden></p>
+    <section class="spectrum" id="sec-bands">
+      <div class="lbl"><h2>価格帯の分布<span id="bandmonth"></span></h2><p class="hint">クリックでその価格帯だけに絞り込み・もう一度押すと解除。月セレクトで対象月を変えると件数も変わります。</p></div>
+      <div class="bands" id="bands"></div>
+    </section>
+  </div>
+</header>
+
+<div class="wrap layout">
+<main class="col-main">
 
 <details class="card sec" open id="sec-rank">
   <summary><h2>ランキング</h2><span class="secnote" id="ranknote"></span></summary>
   <div class="secbody">
-  <p class="hint">都市名クリックでその国に地図が寄り、都市の位置が波紋で光ります。右端の「詳細」で、その都市の月別価格・最安時期をまとめたページを開けます。国・地域名クリックでその国だけに絞り込み（もう一度で解除）。列見出し「国・地域」で国順に並べ替え。月セレクトで対象月を選ぶと、その月の価格列・グラフの青丸・並べ替えが切り替わります。都市名の左の☆でお気に入り登録（★のみボタンで絞り込み）。列見出しで並べ替え。「月別推移」は左から1月→12月（1〜9月は2027年・10〜12月は2026年の実測。緑=最安月・赤=最高月・青の縦線=今月／カーソルを合わせると月と価格）、「変動」は年間の最高÷最低。</p>
+  <p class="hint">都市名クリックでその国に地図が寄り、都市の位置が波紋で光ります。国・地域名クリックでその国だけに絞り込み。右端の「詳細」で月別価格・最安時期のページを開けます。☆でお気に入りに保存（このブラウザだけに保存されます）。</p>
   <div class="tools">
     <input type="search" id="q" placeholder="都市名・国名で検索（日本語・英語）">
     <select id="csel"><option value="">すべての国・地域</option></select>
@@ -307,7 +388,7 @@ body.mapfull .floathead{display:none}
 <details class="card sec" open id="sec-country">
   <summary><h2>国・地域別</h2><span class="secnote" id="ctrynote"></span></summary>
   <div class="secbody">
-  <p class="hint">国名をクリックすると都市一覧（ランキングと同じ項目）が開き、地図がその国にズーム。その中の都市名クリックは縮尺を変えず位置だけ光ります。☆を押すとお気に入り（★）になります（並び順は変わりません）。ブラウザに保存されるので次回も残ります。国の値は掲載都市の年間中央値の中央値です。</p>
+  <p class="hint">バーはその国の都市の年間中央値の幅（最安都市→最高都市・対数目盛）、丸は国の中央値。国名をクリックすると都市一覧が開き、地図がその国にズームします。☆で国をお気に入りに保存。</p>
   <div class="tools">
     <select id="corder">
       <option value="med">国の中央値が安い順</option>
@@ -317,6 +398,7 @@ body.mapfull .floathead{display:none}
       <option value="ja">国名の五十音順</option>
     </select>
   </div>
+  <div class="axisrow" id="caxis"></div>
   <div id="bycountry"></div>
   </div>
 </details>
@@ -353,6 +435,7 @@ body.mapfull .floathead{display:none}
     </div>
     <div class="mapfocus idle" id="mapfocus"></div>
     <div id="map"></div>
+    <div class="legend" id="maplegend"></div>
     <p class="hint maphint" id="maphint"></p>
   </div>
 </aside>
@@ -362,15 +445,14 @@ body.mapfull .floathead{display:none}
   <table><colgroup></colgroup><thead><tr></tr></thead></table>
 </div>
 
-<footer class="sitefoot">
+<footer class="sitefoot"><div class="wrap">
   <span>価格は 2026-09-21 時点の調査値です。実際の料金は予約サイトでご確認ください。</span>
   <nav>
     <a href="disclaimer.html">免責事項・データについて</a>
     <a href="privacy.html">プライバシーポリシー</a>
     <a href="about.html">運営者情報</a>
   </nav>
-</footer>
-</div>
+</div></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -410,13 +492,10 @@ const bookUrl = d => "https://www.booking.com/searchresults.ja.html?ss=" + enc(d
   + "&group_adults=2&no_rooms=1&nflt=" + enc("class=4");
 const mapUrl = d => "https://www.google.com/maps/search/?api=1&query=" + enc(d.name + ", " + d.c);
 
-document.getElementById("meta").innerHTML = [
-  ["掲載都市", DATA.length + " 都市"],
-  ["国・地域", new Set(DATA.map(d=>d.c)).size + " か国"],
-  ["取得", ASOF],
-  ["サンプル", "12ヶ月 × 各1泊"],
-  ["条件", "2名1室・税込"]
-].map(([k,v]) => '<span class="chip">' + k + ' <b>' + v + '</b></span>').join("");
+{ const nC = new Set(DATA.map(d=>d.c)).size;
+  document.getElementById("meta").innerHTML = '4-star hotel price index — <b>' + DATA.length + '</b> cities · <b>' + nC + '</b> countries · updated <b>' + ASOF + '</b>';
+  document.querySelectorAll("[data-n=cities]").forEach(e => e.textContent = DATA.length);
+  document.querySelectorAll("[data-n=countries]").forEach(e => e.textContent = nC); }
 
 let filterBand = null, filterCountry = "", filterQ = "", sortMode = "med";
 let mapFocus = null, countryOrder = "med", cityFocus = null;
@@ -443,6 +522,31 @@ const ckey = d => d.name + "|" + d.c;
 const esc = t => String(t).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 let markerIdx = {};
 
+// ---- ヒーローの数字4つ・地図の凡例・国別の目盛 ----
+const G_MIN = Math.min(...DATA.map(d=>d.med)), G_MAX = Math.max(...DATA.map(d=>d.med));
+const lgPos = v => (Math.log(v) - Math.log(G_MIN)) / (Math.log(G_MAX) - Math.log(G_MIN)) * 100;
+function paintKPIs(){
+  const el = document.getElementById("kpis"); if(!el) return;
+  const srt = DATA.slice().sort((a,b)=>a.med-b.med);
+  const lo = srt[0], hi = srt[srt.length-1], med = srt[Math.floor(srt.length/2)].med;
+  const now = DATA.filter(d=>nowPrice(d)!=null).sort((a,b)=>nowPrice(a)-nowPrice(b))[0];
+  const city = d => `<a href="${cityUrl(d)}" title="${esc(d.name)}の詳細ページ">${jname(d)}・${cname(d)}</a>`;
+  const kpi = (cls, label, val, sub) => `<div class="kpi ${cls}"><small>${label}</small><b>${val}</b>${sub}</div>`;
+  el.innerHTML = kpi("lo", "いちばん安い都市", fmtY(lo.med), city(lo))
+    + kpi("", "世界の中央値 / 泊", fmtY(med), `<span>${DATA.length}都市の年間中央値の中央値</span>`)
+    + kpi("hi", "いちばん高い都市", fmtY(hi.med), city(hi))
+    + kpi("now", monthLabel(selMonth) + "の最安", now ? fmtY(nowPrice(now)) : "—", now ? city(now) : "");
+}
+function paintLegend(){
+  const el = document.getElementById("maplegend"); if(!el) return;
+  el.innerHTML = BANDS.map(b => `<span><i style="background:var(${b.c})"></i>${b.label}</span>`).join("");
+}
+function paintAxis(){
+  const el = document.getElementById("caxis"); if(!el) return;
+  const ticks = [G_MIN, 10000, 30000, G_MAX];
+  el.innerHTML = '<span></span><span></span><div class="axis">' + ticks.map(v => `<span style="left:${lgPos(v).toFixed(1)}%">${fmtY(v)}</span>`).join("") + '</div>';
+}
+
 function sparkline(src, w, h){
   const m = MORDER.map(i => src[i]);
   const v = m.filter(x=>x!=null);
@@ -451,6 +555,8 @@ function sparkline(src, w, h){
   const xy = m.map((x,i)=> x==null ? null
     : [i*(w/(m.length-1)), h - ((x-lo)/rg)*(h-4) - 2]);
   const pts = xy.filter(Boolean).map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  const fp = xy.filter(Boolean);
+  const area = fp.length ? fp[0][0].toFixed(1) + "," + h + " " + pts + " " + fp[fp.length-1][0].toFixed(1) + "," + h : "";
   const sorted = v.slice().sort((a,b)=>a-b);
   const col = cssv(BANDS[bandOf(sorted[Math.floor(sorted.length/2)])].c);
   const iLo = m.indexOf(lo), iHi = m.indexOf(hi);
@@ -462,6 +568,7 @@ function sparkline(src, w, h){
   return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img"
     aria-label="月別推移 1月〜12月（${MONTHS_DISP[0]}〜${MONTHS_DISP[11]}）"
     data-v="${m.join(",")}" data-xy="${xy.map(c=>c?c[0].toFixed(1)+","+c[1].toFixed(1):"").join(";")}">
+    <polygon points="${area}" fill="${col}" fill-opacity=".10"/>
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
     ${dot(iLo,"spk-lo")}${dot(iHi,"spk-hi")}${now}
     <circle class="spk-cur" r="3" style="display:none"/>
@@ -486,23 +593,23 @@ function sorted(list){
 }
 
 const COLS_MAIN = `<colgroup>
-  <col style="width:3.5%"><col style="width:20%"><col style="width:10%"><col style="width:10%">
-  <col style="width:8%"><col style="width:9%"><col style="width:6.25%"><col style="width:6.25%">
-  <col style="width:5%"><col style="width:5.5%"><col style="width:16.5%"></colgroup>`;
+  <col style="width:3.8%"><col style="width:16.5%"><col style="width:14.8%"><col style="width:10.3%">
+  <col style="width:7.6%"><col style="width:9.6%"><col style="width:6.2%"><col style="width:6.2%">
+  <col style="width:4.7%"><col style="width:5.3%"><col style="width:15%"></colgroup>`;
 const COLS_COUNTRY = `<colgroup>
   <col style="width:4%"><col style="width:21.5%"><col style="width:11%">
   <col style="width:9%"><col style="width:10.5%"><col style="width:7%"><col style="width:7%">
   <col style="width:6%"><col style="width:5.5%"><col style="width:18.5%"></colgroup>`;
 const HEAD_MAIN = () => `<th data-s="rank">#</th><th data-s="name">都市</th><th data-s="country">国・地域</th>
-  <th data-s="med" class="num">年間中央値 / 泊</th>
+  <th data-s="med" class="num">年間中央値<small>/ 泊</small></th>
   <th data-s="now" class="num"><span id="nowlabel">${monthLabel(selMonth)}</span></th>
-  <th data-s="spark">月別推移 <span style="font-weight:400;color:var(--sub)">1月→12月</span></th>
+  <th data-s="spark">月別推移<small>1月→12月</small></th>
   <th data-s="lo" class="num">最安月</th><th data-s="hi" class="num">最高月</th>
   <th data-s="seas" class="num">変動</th><th data-s="cnt" class="num">掲載数</th><th>リンク</th>`;
 const HEAD_COUNTRY = () => `<th>#</th><th>都市</th>
-  <th class="num">年間中央値 / 泊</th>
+  <th class="num">年間中央値<small>/ 泊</small></th>
   <th class="num">${monthLabel(selMonth)}</th>
-  <th>月別推移 <span style="font-weight:400;color:var(--sub)">1月→12月</span></th>
+  <th>月別推移<small>1月→12月</small></th>
   <th class="num">最安月</th><th class="num">最高月</th>
   <th class="num">変動</th><th class="num">掲載数</th><th>リンク</th>`;
 
@@ -511,11 +618,11 @@ function cityRow(d, withCountry){
   const thin = d.cnt < 30;
   return `<tr class="${FAVCITY.has(ckey(d))?'favrow ':''}${cityFocus===ckey(d)?'cityfocus':''}">
       <td class="rank">${d.__r}</td>
-      <td class="city"><button type="button" class="stbtn${FAVCITY.has(ckey(d))?" on":""}" data-k="${esc(ckey(d))}" aria-pressed="${FAVCITY.has(ckey(d))}" title="お気に入りの都市に入れる／外す">${FAVCITY.has(ckey(d))?"★":"☆"}</button><span class="flag">${cflag(d)}</span><a class="citylink" href="${cityUrl(d)}" data-k="${esc(ckey(d))}" title="${esc(d.name)}｜クリックで地図に表示／⌘・Ctrl＋クリックで詳細ページ">${jname(d)}</a>${ename(d)}${d.ap?' <span title="件数ベースの探索が不安定だったため、検索結果1ページ目の表示価格の中央値で代用しています" style="color:var(--b4);font-size:11px">≈</span>':''}</td>
-      ${withCountry?`<td class="ctry">${FAV.has(d.c)?'<span class="favmark" title="お気に入り">★</span>':""}<span class="ctrylink" role="button" tabindex="0" data-c="${esc(d.c)}" title="この国だけに絞り込み（もう一度クリックで解除）">${cname(d)}</span></td>`:""}
-      <td class="num"><span class="pricecell" style="background:var(${b.s});color:var(${b.c})">${fmtY(d.med)}</span></td>
+      <td class="city"><button type="button" class="stbtn${FAVCITY.has(ckey(d))?" on":""}" data-k="${esc(ckey(d))}" aria-pressed="${FAVCITY.has(ckey(d))}" title="お気に入りの都市に入れる／外す">${FAVCITY.has(ckey(d))?"★":"☆"}</button><a class="citylink" href="${cityUrl(d)}" data-k="${esc(ckey(d))}" title="${esc(d.name)}｜クリックで地図に表示／⌘・Ctrl＋クリックで詳細ページ">${jname(d)}</a>${ename(d)}${d.ap?' <span title="件数ベースの探索が不安定だったため、検索結果1ページ目の表示価格の中央値で代用しています" style="color:var(--b4);font-size:11px">≈</span>':''}</td>
+      ${withCountry?`<td class="ctry">${FAV.has(d.c)?'<span class="favmark" title="お気に入り">★</span>':""}<span class="flag">${cflag(d)}</span><span class="ctrylink" role="button" tabindex="0" data-c="${esc(d.c)}" title="この国だけに絞り込み（もう一度クリックで解除）">${cname(d)}</span></td>`:""}
+      <td class="num"><span class="pricecell" style="background:var(${b.c})">${fmtY(d.med)}</span></td>
       <td class="num nowcell" style="${nowPrice(d)==null ? "" : "color:var(" + BANDS[bandOf(nowPrice(d))].c + ")"}">${nowPrice(d)==null ? "—" : fmtY(nowPrice(d))}</td>
-      <td>${sparkline(d.m, 96, 22)}</td>
+      <td>${sparkline(d.m, 104, 26)}</td>
       <td class="num rng">${fmtY(d.lo)}</td>
       <td class="num rng">${fmtY(d.hi)}</td>
       <td class="num seas" style="${d.hi/d.lo>=2?'color:var(--b4);font-weight:700':''}">${(d.hi/d.lo).toFixed(2)}×</td>
@@ -529,8 +636,9 @@ function keepRankInView(){
   if(!sec) return;
   const top = sec.getBoundingClientRect().top;
   if(top < 0 || top > window.innerHeight * 0.75){
-    sec.scrollIntoView({block:"start"});
-    window.scrollBy(0, -12);
+    const tb = document.getElementById("topbar");
+    const off = (tb && getComputedStyle(tb).position === "sticky") ? tb.offsetHeight + 8 : 8;
+    window.scrollTo({ top: Math.max(0, sec.getBoundingClientRect().top + window.scrollY - off) });
   }
 }
 
@@ -597,11 +705,14 @@ function paintTable(){
 
 function paintBands(){
   const counts = BANDS.map((b,i)=>DATA.filter(d=>bandOf(priceOf(d))===i).length);
+  const mx = Math.max(1, ...counts);
   document.getElementById("bands").innerHTML = BANDS.map((b,i)=>
-    `<div class="bandbox" role="button" tabindex="0" data-b="${i}" aria-pressed="${filterBand===i}">
-       <div class="lb"><span class="sw" style="background:var(${b.c})"></span>${b.label}</div>
-       <div class="ct" style="color:var(${b.c})">${counts[i]}</div>
+    `<div class="bandbox" role="button" tabindex="0" data-b="${i}" aria-pressed="${filterBand===i}" style="--bc:var(${b.c})">
+       <div class="lb">${b.label}</div>
+       <div class="ct">${counts[i]}<small>都市</small></div>
+       <div class="bar"><i style="width:${Math.round(counts[i]/mx*100)}%"></i></div>
      </div>`).join("");
+  paintKPIs();
   document.querySelectorAll(".bandbox").forEach(el=>{
     const go=()=>{ const i=+el.dataset.b; cityFocus=null; clearCountryFocus(); filterBand = (filterBand===i)?null:i; paintBands(); paintTable(); paintMap(); keepRankInView(); };
     el.addEventListener("click", go);
@@ -636,8 +747,13 @@ function paintCountries(){
   document.getElementById("bycountry").innerHTML = rows.map(({c,cities:l,mid,__cr})=>{
     const jp = CJ[c]?CJ[c].ja:c, fl = CJ[c]?CJ[c].f:"", b=BANDS[bandOf(mid)];
     return `<details class="country" data-c="${c}">
-      <summary><span><button type="button" class="favbtn${FAV.has(c)?" on":""}" data-c="${esc(c)}" aria-pressed="${FAV.has(c)}" title="お気に入りに入れる／外す">${FAV.has(c)?"★":"☆"}</button><span style="color:var(--sub);font-weight:500">${__cr}.</span> ${fl} ${jp} <span style="color:var(--sub);font-weight:500">(${l.length})</span></span>
-      <span class="cmeta"><span style="color:var(${b.c});font-weight:700">${fmtY(mid)}</span><br>最安 ${fmtY(l[0].med)} · ${jname(l[0])}</span></summary>
+      <summary>
+      <span class="cr"><button type="button" class="favbtn${FAV.has(c)?" on":""}" data-c="${esc(c)}" aria-pressed="${FAV.has(c)}" title="お気に入りに入れる／外す">${FAV.has(c)?"★":"☆"}</button>${__cr}</span>
+      <span class="nm">${fl} ${jp}<small>${l.length}都市</small></span>
+      <span class="track" style="--c1:var(${BANDS[bandOf(l[0].med)].c});--c2:var(${BANDS[bandOf(l[l.length-1].med)].c});--cm:var(${b.c})"><i style="left:${lgPos(l[0].med).toFixed(1)}%;width:${Math.max(1.2, lgPos(l[l.length-1].med) - lgPos(l[0].med)).toFixed(1)}%"></i><b style="left:${lgPos(mid).toFixed(1)}%"></b></span>
+      <span class="md" style="color:var(${b.c})">${fmtY(mid)}</span>
+      <span class="cheap">最安 ${fmtY(l[0].med)}<b>${jname(l[0])}</b></span>
+    </summary>
       <div class="inner"><p class="ctrypage"><a href="${countryUrl(c)}">${fl} ${jp}の相場ページ（都市比較・月別推移）を開く →</a></p><div class="tablewrap"><table>
         ${COLS_COUNTRY}<thead><tr>${HEAD_COUNTRY()}</tr></thead>
         <tbody>${l.map(d=>cityRow(d, false)).join("")}</tbody></table></div></div></details>`;
@@ -753,7 +869,7 @@ function setMapFocus(c, scroll){
 
 // ---- 表示モード（自動／ライト／ダーク）。選択はブラウザに保存 ----
 (function(){
-  const KEY = "theme", ORDER = ["auto","light","dark"], LABEL = {auto:"🌓 自動", light:"☀️ ライト", dark:"🌙 ダーク"};
+  const KEY = "theme", ORDER = ["auto","light","dark"], LABEL = {auto:"◐ 自動", light:"☀ ライト", dark:"● ダーク"};
   const btn = document.getElementById("themebtn");
   let cur = "auto";
   try{ const s = localStorage.getItem(KEY); if(ORDER.includes(s)) cur = s; }catch(e){}
@@ -767,30 +883,39 @@ function setMapFocus(c, scroll){
     cur = ORDER[(ORDER.indexOf(cur) + 1) % ORDER.length];
     try{ localStorage.setItem(KEY, cur); }catch(e){}
     apply();
-    if(typeof paintTable === "function"){ paintTable(); paintCountries(); paintMap(); }   // 色変数を再読込
+    try{ setBasemap(tileKey); }catch(e){}                                                   // 地図の下地を表示モードに合わせる
+    if(typeof paintTable === "function"){ paintBands(); paintTable(); paintCountries(); paintMap(); }   // 色変数を再読込
   });
 })();
 const map = L.map("map", {scrollWheelZoom:false, worldCopyJump:true, minZoom:1}).setView([20,10], 2);
 const BASEMAPS = {
+  auto:{label:"自動（表示モードに合わせる）"},
   osm:{label:"標準（OSM）", url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
     opt:{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom:18}},
-  light:{label:"淡色（見やすい）", url:"https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  light:{label:"淡色（Esri）", url:"https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    opt:{attribution:'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors', maxNativeZoom:16, maxZoom:18}},
+  dark:{label:"ダーク（Esri）", url:"https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
     opt:{attribution:'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors', maxNativeZoom:16, maxZoom:18}}
 };
-const TILE_KEY = "basemap";
-let tileKey = "osm";
+const TILE_KEY = "basemap2";   // 旧キー basemap（既定 osm）は無視し、既定を「自動」にする
+let tileKey = "auto";
 try{ const s = localStorage.getItem(TILE_KEY); if(s && BASEMAPS[s]) tileKey = s; }catch(e){}
+const isDarkMode = () => { const t = document.documentElement.getAttribute("data-theme");
+  return t === "dark" || (!t && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches); };
 let baseLayer = null;
 function setBasemap(k){
-  if(!BASEMAPS[k]) k = "osm";
+  if(!BASEMAPS[k]) k = "auto";
   tileKey = k;
+  const eff = k === "auto" ? (isDarkMode() ? "dark" : "osm") : k;   // 自動: ライト=OSM標準・ダーク=Esri Dark
   if(baseLayer) map.removeLayer(baseLayer);
-  const b = BASEMAPS[k];
+  const b = BASEMAPS[eff];
   baseLayer = L.tileLayer(b.url, b.opt).addTo(map);
   baseLayer.bringToBack();
+  map.getContainer().dataset.tile = eff;
   try{ localStorage.setItem(TILE_KEY, k); }catch(e){}
 }
 setBasemap(tileKey);
+if(window.matchMedia){ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ()=>{ setBasemap(tileKey); paintBands(); paintTable(); paintCountries(); paintMap(); }); }
 {
   const ts = document.getElementById("tilesel");
   ts.innerHTML = Object.entries(BASEMAPS).map(([k,b]) =>
@@ -945,6 +1070,7 @@ document.getElementById("ranknote").textContent = DATA.length + " 都市";
 document.getElementById("ctrynote").textContent = new Set(DATA.map(d=>d.c)).size + " か国・地域";
 syncMonthLabels();
 paintMapHint();
+paintLegend(); paintAxis();
 paintBandMonth();
 paintBands(); paintTable(); paintCountries(); paintMap(); paintFocusBadge(); paintFavBtn();
 requestAnimationFrame(fit); setTimeout(fit,300); setTimeout(fit,1200);
@@ -965,8 +1091,8 @@ window.addEventListener("load",()=>setTimeout(fit,100));
   const fhTable = fh.querySelector("table");
   let cache = null;
 
-  const navOffset = () =>
-    (nav && getComputedStyle(nav).position === "sticky") ? nav.offsetHeight : 0;
+  const tb = document.getElementById("topbar");
+  const navOffset = () => (tb && getComputedStyle(tb).position === "sticky") ? tb.offsetHeight : 0;
 
   function build(){
     const head = table.querySelector("thead").innerHTML;
@@ -1027,8 +1153,8 @@ navJump = (function(){
   const jrow  = document.getElementById("secnav-jump");
   const jlab  = document.getElementById("secnav-jlabel");
   const jbox  = document.getElementById("secnav-jchips");
-  const sticky = () => getComputedStyle(nav).position === "sticky";
-  const offset = () => (sticky() ? nav.offsetHeight + 6 : 6);
+  const tb = document.getElementById("topbar");
+  const offset = () => ((tb && getComputedStyle(tb).position === "sticky") ? tb.offsetHeight + 6 : 6);
 
   let lock = 0;                       // クリック直後はスクロール判定を止める
   let jumpTarget = "sec-rank";        // 位置ジャンプの対象セクション
@@ -1114,6 +1240,9 @@ navJump = (function(){
   return buildJump;                    // 絞り込み・並べ替えのあとに呼び直す
 })();
 
+(function(){ const tb = document.getElementById("topbar"); if(!tb) return;
+  const set = () => document.documentElement.style.setProperty("--tbh", tb.offsetHeight + "px");
+  set(); window.addEventListener("resize", set); if(window.ResizeObserver) new ResizeObserver(set).observe(tb); })();
 window.addEventListener("resize",()=>setTimeout(fit,150));
 if(window.ResizeObserver){ let t; new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(fit,180); }).observe(document.getElementById("map")); }
 </script>
