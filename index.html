@@ -171,6 +171,16 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 .ctrypage a{color:var(--accent);text-decoration:none;background:var(--accent-soft);
   padding:5px 11px;border-radius:8px;display:inline-block}
 .ctrypage a:hover{background:var(--accent);color:#fff}
+.secnav{position:sticky;top:0;z-index:700;display:flex;gap:6px;flex-wrap:wrap;
+  padding:10px 0;background:var(--bg)}
+.secnav a{font-size:12.5px;color:var(--sub);text-decoration:none;background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:5px 13px;white-space:nowrap;
+  box-shadow:var(--shadow)}
+.secnav a:hover{color:var(--accent);border-color:var(--accent)}
+.secnav a:focus:not(:focus-visible){outline:none}
+.secnav a.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+@media(min-width:1081px){ thead th{top:var(--navh,52px)} }
+@media(max-width:1080px){ .secnav{position:static;padding:4px 0 10px} }
 .sitefoot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
   display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;
   font-size:12.5px;color:var(--sub)}
@@ -201,7 +211,14 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 <div class="layout">
 <main class="col-main">
 
-<div class="card">
+<nav class="secnav" id="secnav" aria-label="セクション移動">
+  <a href="#sec-bands" data-t="sec-bands">価格帯の分布</a>
+  <a href="#sec-rank" data-t="sec-rank">ランキング</a>
+  <a href="#sec-country" data-t="sec-country">国・地域別</a>
+  <a href="#sec-note" data-t="sec-note">データと注意点</a>
+</nav>
+
+<div class="card" id="sec-bands">
   <h2>価格帯の分布 <span id="bandmonth" style="font-size:13px;font-weight:500;color:var(--sub)"></span></h2>
   <p class="hint">クリックでその価格帯だけに絞り込み。もう一度押すと解除。月セレクトで対象月を変えると件数も変わります。</p>
   <div class="bands" id="bands"></div>
@@ -810,6 +827,40 @@ paintBandMonth();
 paintBands(); paintTable(); paintCountries(); paintMap(); paintFocusBadge(); paintFavBtn();
 requestAnimationFrame(fit); setTimeout(fit,300); setTimeout(fit,1200);
 window.addEventListener("load",()=>setTimeout(fit,100));
+// ---- セクションジャンプ ----
+(function(){
+  const nav = document.getElementById("secnav");
+  if(!nav) return;
+  const links = [...nav.querySelectorAll("a[data-t]")];
+  const sticky = () => getComputedStyle(nav).position === "sticky";
+  const offset = () => (sticky() ? nav.offsetHeight + 6 : 6);
+  const syncH = () => document.documentElement.style.setProperty("--navh",
+    (sticky() ? nav.offsetHeight : 0) + "px");
+  syncH();
+  window.addEventListener("resize", () => { syncH(); mark(); });
+  nav.addEventListener("click", ev => {
+    const a = ev.target.closest("a[data-t]");
+    if(!a) return;
+    ev.preventDefault();
+    const el = document.getElementById(a.dataset.t);
+    if(!el) return;
+    if(el.tagName === "DETAILS" && !el.open) el.open = true;   // たたまれていたら開く
+    const y = el.getBoundingClientRect().top + window.scrollY - offset();
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  });
+  function mark(){
+    const line = window.scrollY + offset() + 24;
+    let cur = links[0].dataset.t;
+    links.forEach(a => {
+      const el = document.getElementById(a.dataset.t);
+      if(el && el.getBoundingClientRect().top + window.scrollY <= line) cur = a.dataset.t;
+    });
+    links.forEach(a => a.classList.toggle("on", a.dataset.t === cur));
+  }
+  let tk; window.addEventListener("scroll", () => { clearTimeout(tk); tk = setTimeout(mark, 70); }, {passive:true});
+  mark();
+})();
+
 window.addEventListener("resize",()=>setTimeout(fit,150));
 if(window.ResizeObserver){ let t; new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(fit,180); }).observe(document.getElementById("map")); }
 if(window.ResizeObserver){ let t; new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(fit,150);}).observe(document.getElementById("map")); }
