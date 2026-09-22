@@ -476,13 +476,13 @@ const COLS_COUNTRY = `<colgroup>
   <col style="width:4%"><col style="width:19%"><col style="width:11%">
   <col style="width:9%"><col style="width:11%"><col style="width:7.5%"><col style="width:7.5%">
   <col style="width:6%"><col style="width:5.5%"><col style="width:19.5%"></colgroup>`;
-const HEAD_MAIN = `<th data-s="rank">#</th><th data-s="name">都市</th><th data-s="country">国・地域</th>
+const HEAD_MAIN = () => `<th data-s="rank">#</th><th data-s="name">都市</th><th data-s="country">国・地域</th>
   <th data-s="med" class="num">年間中央値 / 泊</th>
   <th data-s="now" class="num"><span id="nowlabel">${monthLabel(selMonth)}</span></th>
   <th data-s="spark">月別推移 <span style="font-weight:400;color:var(--sub)">1月→12月</span></th>
   <th data-s="lo" class="num">最安月</th><th data-s="hi" class="num">最高月</th>
   <th data-s="seas" class="num">変動</th><th data-s="cnt" class="num">掲載数</th><th>リンク</th>`;
-const HEAD_COUNTRY = `<th>#</th><th>都市</th>
+const HEAD_COUNTRY = () => `<th>#</th><th>都市</th>
   <th class="num">年間中央値 / 泊</th>
   <th class="num">${monthLabel(selMonth)}</th>
   <th>月別推移 <span style="font-weight:400;color:var(--sub)">1月→12月</span></th>
@@ -565,7 +565,9 @@ function countryRows(){
   const rows = Object.entries(by).map(([c,l])=>{
     const cities = l.slice().sort((a,b)=>a.med-b.med);
     const v = cities.map(x=>x.med);
-    return {c, cities, mid: v[Math.floor(v.length/2)]};
+    const n = v.length;
+    const mid = n % 2 ? v[(n-1)/2] : Math.round((v[n/2-1] + v[n/2]) / 2);   // 偶数個は中央2値の平均
+    return {c, cities, mid};
   });
   const jaName = r => (CJ[r.c] ? CJ[r.c].ja : r.c);
   const f = {
@@ -587,7 +589,7 @@ function paintCountries(){
       <summary><span><button type="button" class="favbtn${FAV.has(c)?" on":""}" data-c="${esc(c)}" aria-pressed="${FAV.has(c)}" title="お気に入りに入れる／外す">${FAV.has(c)?"★":"☆"}</button><span style="color:var(--sub);font-weight:500">${__cr}.</span> ${fl} ${jp} <span style="color:var(--sub);font-weight:500">(${l.length})</span></span>
       <span class="cmeta"><span style="color:var(${b.c});font-weight:700">${fmtY(mid)}</span><br>最安 ${fmtY(l[0].med)} · ${l[0].name}</span></summary>
       <div class="inner"><p class="ctrypage"><a href="${countryUrl(c)}">${fl} ${jp}の相場ページ（都市比較・月別推移）を開く →</a></p><div class="tablewrap"><table>
-        ${COLS_COUNTRY}<thead><tr>${HEAD_COUNTRY}</tr></thead>
+        ${COLS_COUNTRY}<thead><tr>${HEAD_COUNTRY()}</tr></thead>
         <tbody>${l.map(d=>cityRow(d, false)).join("")}</tbody></table></div></div></details>`;
   }).join("");
 
@@ -738,7 +740,7 @@ function paintMap(){
   layer.clearLayers();
   const pts = [];
   markerIdx = {};
-  map.__maxz = mapFocus ? 7 : 18;
+  map.__maxz = mapFocus ? 7 : 10;   // 国フォーカスは7、通常の絞り込みは都市が判別できる10まで
   (mapFocus ? DATA.filter(d=>d.c===mapFocus) : visible()).forEach(d=>{
     if(d.lat==null||d.lng==null) return;
     const mv = nowPrice(d);
@@ -789,7 +791,9 @@ monthsel.addEventListener("change", e=>{
   syncMonthLabels(); paintBandMonth(); paintBands(); paintTable(); paintCountries(); paintMap(); paintMapHint();
 });
 document.getElementById("rankcols").outerHTML = COLS_MAIN;
-document.getElementById("rankhead").innerHTML = HEAD_MAIN;
+document.getElementById("rankhead").innerHTML = HEAD_MAIN();
+document.getElementById("sortsel").value = sortMode;                       // セレクト表示を実際の並びに合わせる
+document.querySelector('#rank th[data-s="med"]').classList.add("sorted","asc");
 document.querySelectorAll("#rank th[data-s]").forEach(th=>{
   th.addEventListener("click", ()=>{
     const k=th.dataset.s; const m={med:"med",lo:"lo",hi:"medd",seas:"seas",cnt:"cnt",country:"ctry",now:"now"}[k];
@@ -957,7 +961,8 @@ navJump = (function(){
     const step = isRank ? 50 : 20;
     const items = [...document.querySelectorAll(sel)];
     jlab.textContent = isRank ? "ランキング内" : "国・地域別";
-    if(items.length <= step){ jbox.innerHTML = ""; return; }
+    if(items.length <= step){ jbox.innerHTML = ""; jrow.hidden = true; return; }
+    jrow.hidden = false;
     let html = "";
     for(let i = 0; i < items.length; i += step){
       const last = Math.min(i + step, items.length);
@@ -1026,7 +1031,6 @@ navJump = (function(){
 
 window.addEventListener("resize",()=>setTimeout(fit,150));
 if(window.ResizeObserver){ let t; new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(fit,180); }).observe(document.getElementById("map")); }
-if(window.ResizeObserver){ let t; new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(fit,150);}).observe(document.getElementById("map")); }
 </script>
 </body>
 </html>

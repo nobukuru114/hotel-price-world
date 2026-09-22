@@ -3,7 +3,7 @@
 const fs = require("fs"), path = require("path");
 const ROOT = path.join(__dirname, "..");
 const BASE = "https://nobukuru114.github.io/hotel-price-world";
-const CAPTURED = "2026-09-21", BUILT = "2026-09-22";
+const CAPTURED = "2026-09-21", BUILT = new Date().toISOString().slice(0,10);
 
 // ---- index.html から正本データを抽出 -------------------------------------
 const src = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
@@ -35,7 +35,7 @@ const BANDS = [
   {max:30000,  label:"¥20,000〜30,000", c:"#d4553e"},
   {max:Infinity,label:"¥30,000〜",      c:"#8b3a62"}
 ];
-const bandOf = v => BANDS.findIndex(b => v < b.max);
+const bandOf = v => BANDS.findIndex(b => v <= b.max);   // index.html と同じ判定（上限を含む）
 const esc  = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const yen  = n => "¥" + Number(n).toLocaleString("ja-JP");
 const enc  = encodeURIComponent;
@@ -125,7 +125,7 @@ function summary(d) {
   const ratio = (d.hi / d.lo);
   const nm = esc(d.name) + (kanji(d) ? "（" + kanji(d) + "）" : "");
   let s = `${nm}の4つ星ホテルは、大人2名1室1泊の税込中央値で<b>${yen(d.med)}</b>。`;
-  s += `世界347都市中${d.__rank}番目に安く、${esc(cname(d))}国内では${byCountry[d.c].length}都市中${d.__crank}番目です。`;
+  s += `世界${DATA.length}都市中${d.__rank}番目に安く、${esc(cname(d))}国内では${byCountry[d.c].length}都市中${d.__crank}番目です。`;
   s += `もっとも安いのは<b>${loM}月の${yen(d.lo)}</b>、もっとも高いのは<b>${hiM}月の${yen(d.hi)}</b>で、その差は${ratio.toFixed(2)}倍。`;
   s += ratio >= 2 ? "季節による振れ幅が大きいため、時期の選び方で宿泊費が倍近く変わります。"
      : ratio >= 1.4 ? "時期を選べば1〜2割は安く泊まれます。"
@@ -188,7 +188,7 @@ DATA.forEach(d => {
   <div class="stat"><span>最安月</span><b>${sm.loM}月</b><small>${yen(d.lo)}</small></div>
   <div class="stat"><span>最高月</span><b>${sm.hiM}月</b><small>${yen(d.hi)}</small></div>
   <div class="stat"><span>季節変動</span><b>${sm.ratio.toFixed(2)}×</b><small>最高÷最安</small></div>
-  <div class="stat"><span>世界順位</span><b>${d.__rank}位</b><small>347都市中・安い順</small></div>
+  <div class="stat"><span>世界順位</span><b>${d.__rank}位</b><small>${DATA.length}都市中・安い順</small></div>
   <div class="stat"><span>掲載数</span><b>${d.cnt.toLocaleString()}軒</b><small>4つ星${d.cnt < 30 ? "・少なめ" : ""}</small></div>
 </div>
 
@@ -319,12 +319,12 @@ COUNTRIES.forEach(k => {
 <p class="upd">${k.flag} ${esc(k.c)}／Booking.com 実測・調査日 ${CAPTURED}</p>
 
 <p class="lead">${esc(k.ja)}の4つ星ホテルは、掲載 ${k.list.length} 都市の中央値で<b>${yen(k.mid)}</b>（大人2名1室1泊・税込）。
-120か国中${k.rank}番目に安い国です。もっとも安いのは<b>${esc(cheapest.name)}の${yen(cheapest.med)}</b>${k.list.length > 1 ? `、もっとも高いのは<b>${esc(priciest.name)}の${yen(priciest.med)}</b>` : ""}。
+${COUNTRIES.length}か国中${k.rank}番目に安い国です。もっとも安いのは<b>${esc(cheapest.name)}の${yen(cheapest.med)}</b>${k.list.length > 1 ? `、もっとも高いのは<b>${esc(priciest.name)}の${yen(priciest.med)}</b>` : ""}。
 国全体では<b>${loM}月</b>がもっとも安く（${yen(loV)}）、<b>${hiM}月</b>がもっとも高くなります（${yen(hiV)}）。</p>
 
 <div class="stats">
   <div class="stat"><span>都市中央値</span><b style="color:${BANDS[bandOf(k.mid)].c}">${yen(k.mid)}</b><small>1泊・大人2名・税込</small></div>
-  <div class="stat"><span>世界順位</span><b>${k.rank}位</b><small>120か国中・安い順</small></div>
+  <div class="stat"><span>世界順位</span><b>${k.rank}位</b><small>${COUNTRIES.length}か国中・安い順</small></div>
   <div class="stat"><span>掲載都市</span><b>${k.list.length}都市</b><small>4つ星 計${k.list.reduce((s,d)=>s+d.cnt,0).toLocaleString()}軒</small></div>
   <div class="stat"><span>最安の都市</span><b>${esc(cheapest.name)}</b><small>${yen(cheapest.med)}</small></div>
   <div class="stat"><span>安い時期</span><b>${loM}月</b><small>${yen(loV)}</small></div>
@@ -387,7 +387,6 @@ ${near.map(x => `<li><a href="${x.slug}.html">${x.flag} ${esc(x.ja)}</a><span cl
 const urls = [
   { loc: BASE + "/", pri: "1.0" },
   { loc: BASE + "/disclaimer.html", pri: "0.3" },
-  { loc: BASE + "/about.html", pri: "0.3" },
   ...COUNTRIES.map(k => ({ loc: `${BASE}/country/${k.slug}.html`, pri: "0.8" })),
   ...byMed.map(d => ({ loc: `${BASE}/city/${d.__slug}.html`, pri: "0.7" }))
 ];
