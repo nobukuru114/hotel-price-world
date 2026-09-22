@@ -172,7 +172,8 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
   padding:5px 11px;border-radius:8px;display:inline-block}
 .ctrypage a:hover{background:var(--accent);color:#fff}
 .floathead{position:fixed;z-index:690;overflow:hidden;background:var(--card);
-  border-bottom:1px solid var(--line);box-shadow:0 4px 10px rgba(16,24,40,.07)}
+  border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;
+  box-shadow:0 6px 14px rgba(16,24,40,.09)}
 .floathead[hidden]{display:none}
 .floathead table{margin:0;background:var(--card)}
 .floathead th{position:static;top:auto}
@@ -863,6 +864,7 @@ window.addEventListener("load",()=>setTimeout(fit,100));
   const fh    = document.getElementById("floathead");
   const nav   = document.getElementById("secnav");
   const sec   = document.getElementById("sec-rank");
+  const card  = table.closest(".card");
   if(!wrap || !table || !fh) return;
   const fhTable = fh.querySelector("table");
   let cache = null;
@@ -886,17 +888,20 @@ window.addEventListener("load",()=>setTimeout(fit,100));
     build();
     const top = navOffset();
     const wr  = wrap.getBoundingClientRect();
+    const cr  = (card || wrap).getBoundingClientRect();   // 見た目はカード幅いっぱいに広げる
     const hr  = table.querySelector("thead").getBoundingClientRect();
     const h   = Math.round(hr.height) || 34;
     const show = hr.top < top && wr.bottom > top + h + 8;   // 見出しが隠れ、表本体はまだ見えている
     fh.hidden = !show;
     if(!show) return;
     fh.style.top    = top + "px";
-    fh.style.left   = wr.left + "px";
-    fh.style.width  = wr.width + "px";
+    fh.style.left   = cr.left + "px";
+    fh.style.width  = cr.width + "px";
     fh.style.height = h + "px";
     fhTable.style.width = table.offsetWidth + "px";
-    fhTable.style.marginLeft = (-wrap.scrollLeft) + "px";
+    // 列位置は本物の表に合わせたまま、カードの内側余白ぶんだけ右にずらす（枠線1本分を差し引く）
+    const bl = parseFloat(getComputedStyle(fh).borderLeftWidth) || 0;
+    fhTable.style.marginLeft = (wr.left - cr.left - bl - wrap.scrollLeft) + "px";
   }
 
   fh.addEventListener("click", ev => {
