@@ -81,3 +81,8 @@ table.ctbl td a{font-weight:600;text-decoration:none}
 table.ctbl td a:hover{text-decoration:underline}
 table.ctbl small{color:var(--sub);font-weight:400}
 table.ctbl .sub{color:var(--sub);font-size:12.5px}
+
+/* ---- 説明ページの小見出し ---- */
+h3{font-size:13.5px;margin:18px 0 8px;color:var(--sub);letter-spacing:.02em}
+.card>h3:first-child{margin-top:0}
+h3+table,h3+ul,h3+p{margin-top:0}

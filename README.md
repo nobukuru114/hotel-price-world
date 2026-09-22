@@ -5,7 +5,7 @@
 | ファイル | 内容 |
 |---|---|
 | `index.html` | **本命**。347都市の全件ランキング（価格帯で色分け・月別推移・地図・絞り込み）。旧名 hotel-ranking-booking.html（GitHub Pages 用に 2026-09-22 改名） |
-| `disclaimer.html` | 免責事項・調査方法・出典 |
+| `disclaimer.html` | 免責事項・調査方法・出典・**なぜ4つ星に限定しているのか**（#why4） |
 | `privacy.html` | プライバシーポリシー（localStorage の用途を明記） |
 | `about.html` | 運営者情報（運営者名・連絡先は未記入） |
 | `page.css` | 上記3ページ共通のスタイル |
@@ -97,4 +97,5 @@
 | 運営者情報 | ハンドル名 nobukuru114・問い合わせは GitHub Issues（本名・住所・メールは非公開） |
 | 都市別ページ | 347枚。再生成は `node tools/build-pages.js` |
 | 国別ページ | 120枚。同じコマンドで生成 |
+| 星の範囲 | 4つ星のみで確定（2026-09-22）。3・5つ星への拡張は見送り。理由は disclaimer.html#why4 が正本 |
 | 次の施策 | **Search Console 登録→sitemap 送信（未実施・ユーザー操作が必要）**・季節まとめページ・被リンク獲得 |
