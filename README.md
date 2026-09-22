@@ -91,7 +91,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| ホスティング | GitHub Pages（リポジトリ nobukuru114/hotel-price-world） |
+| ホスティング | GitHub Pages（暫定）。**収益化時に Cloudflare Pages へ移行する方針で確定（2026-09-22）** |
 | 公開URL | https://nobukuru114.github.io/hotel-price-world/ |
 | 公開日 | 2026-09-22 |
 | 運営者情報 | ハンドル名 nobukuru114・問い合わせは GitHub Issues（本名・住所・メールは非公開） |
@@ -99,4 +99,6 @@
 | 国別ページ | 120枚。同じコマンドで生成 |
 | 冒頭の4つ星注記 | タイトル直下に「なぜ4つ星だけ？」の要約＋disclaimer.html#why4 へのリンク |
 | 星の範囲 | 4つ星のみで確定（2026-09-22）。3・5つ星への拡張は見送り。理由は disclaimer.html#why4 が正本 |
+| 収益化の方針 | ・アフィリエイト化を行う方針で確定（2026-09-22）<br>・GitHub Pages は「online business の運用」を規約で認めていないため、**実施前に独自ドメイン取得＋Cloudflare Pages への移行が必要**<br>・ドメインは .com ＋ Whois情報公開代行（.jp は登録者名が公開されるため不可） |
+| 実施順序 | ①UI仕上げ → ②独自ドメイン取得 → ③Cloudflare Pages へ移行 → ④Search Console 登録・sitemap 送信 → ⑤Booking.com アフィリエイト申請・リンク差し替え＋PR表記 |
 | 次の施策 | **Search Console 登録→sitemap 送信（未実施・ユーザー操作が必要）**・季節まとめページ・被リンク獲得 |
