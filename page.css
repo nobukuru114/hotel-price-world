@@ -6,6 +6,10 @@
   --bg:#0f1115; --card:#171a20; --ink:#e8ecf2; --sub:#9aa4b2; --line:#272c35;
   --accent:#6aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.35);
 }}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --card:#171a20; --ink:#e8ecf2; --sub:#9aa4b2; --line:#272c35;
+  --accent:#6aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.35);
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
@@ -86,3 +90,6 @@ table.ctbl .sub{color:var(--sub);font-size:12.5px}
 h3{font-size:13.5px;margin:18px 0 8px;color:var(--sub);letter-spacing:.02em}
 .card>h3:first-child{margin-top:0}
 h3+table,h3+ul,h3+p{margin-top:0}
+
+/* ---- 英語名の補助表示 ---- */
+ul.links a small,table.ctbl td a+small{color:var(--sub);font-size:11px;margin-left:5px;font-weight:400}
