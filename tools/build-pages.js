@@ -43,8 +43,10 @@ const cflag = d => (CJ[d.c] ? CJ[d.c].f : "");
 const jname = d => d.ja || d.name;                                  // 日本語名（主表示）
 const both  = d => esc(jname(d)) + (d.ja && d.ja !== d.name ? "（" + esc(d.name) + "）" : "");   // 日本語（英語）
 const kanji = d => "";                                               // 旧: 漢字併記は ja に統合済み
+// Booking.com リンク: 日付（明日から3泊）はブラウザ側の BOOK_JS が付ける。人数・通貨・並び順はここで固定
 const bookUrl = d => "https://www.booking.com/searchresults.ja.html?ss=" + enc(d.name + ", " + d.c)
-  + "&group_adults=2&no_rooms=1&nflt=" + enc("class=4");
+  + "&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&order=price&nflt=" + enc("class=4");
+const BOOK_JS = `<script>(function(){var d=new Date();d.setDate(d.getDate()+1);var ci=d.toISOString().slice(0,10);d.setDate(d.getDate()+3);var co=d.toISOString().slice(0,10);document.querySelectorAll('a[href*="booking.com/searchresults"]').forEach(function(a){a.href+="&checkin="+ci+"&checkout="+co;a.title="Booking.com で検索: "+ci.slice(5).replace("-","/")+" から3泊・大人1名・4つ星・安い順";});})();</script>`;
 const mapUrl = d => "https://www.google.com/maps/search/?api=1&query=" + enc(d.name + ", " + d.c);
 
 const slugify = s => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"")
@@ -227,9 +229,9 @@ ${neighbours(d)}
 <p><a href="../disclaimer.html#why4">なぜ4つ星に限定しているのか →</a> ／ <a href="../disclaimer.html">調査方法と免責事項の詳細 →</a></p>
 </section>
 
-<p class="backlink"><a href="../">← 347都市の一覧・地図に戻る</a></p>
+<p class="backlink"><a href="../">← ${DATA.length}都市の一覧・地図に戻る</a></p>
 
-<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>
+<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>${BOOK_JS}
 </div></body></html>`;
   fs.writeFileSync(path.join(outDir, d.__slug + ".html"), html);
 });
@@ -365,7 +367,7 @@ ${countryMonthRows(k)}
   <li>時期では<b>${loM}月</b>が底値で、もっとも高い${hiM}月と比べて1泊あたり ${yen(hiV - loV)} 安くなります。</li>
   ${k.list.length > 1 ? `<li>${esc(jname(priciest))}（${yen(priciest.med)}）と${esc(jname(cheapest))}（${yen(cheapest.med)}）では、同じ国内でも ${(priciest.med / cheapest.med).toFixed(1)} 倍の差があります。</li>` : ""}
 </ul>
-<p class="cta"><a class="btn" href="https://www.booking.com/searchresults.ja.html?ss=${enc(k.c)}&group_adults=2&no_rooms=1&nflt=${enc("class=4")}" target="_blank" rel="noopener">Booking.comで${esc(k.ja)}の4つ星ホテルを探す</a></p>
+<p class="cta"><a class="btn" href="https://www.booking.com/searchresults.ja.html?ss=${enc(k.c)}&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&order=price&nflt=${enc("class=4")}" target="_blank" rel="noopener">Booking.comで${esc(k.ja)}の4つ星ホテルを探す</a></p>
 <p class="sub">価格は ${CAPTURED} 時点の調査値です。最新の料金と空室は予約サイトでご確認ください。</p>
 </section>
 
@@ -383,9 +385,9 @@ ${near.map(x => `<li><a href="${x.slug}.html">${x.flag} ${esc(x.ja)}</a><span cl
 <p><a href="../disclaimer.html#why4">なぜ4つ星に限定しているのか →</a> ／ <a href="../disclaimer.html">調査方法と免責事項の詳細 →</a></p>
 </section>
 
-<p class="backlink"><a href="../">← 347都市・120か国の一覧と地図に戻る</a></p>
+<p class="backlink"><a href="../">← ${DATA.length}都市・${COUNTRIES.length}か国の一覧と地図に戻る</a></p>
 
-<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>
+<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>${BOOK_JS}
 </div></body></html>`;
   fs.writeFileSync(path.join(cDir, k.slug + ".html"), html);
 });
