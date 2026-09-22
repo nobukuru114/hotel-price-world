@@ -121,8 +121,8 @@ tr:hover td{filter:brightness(.98)}
 #sparktip b{font-weight:700;margin-right:6px}
 .seas{font-variant-numeric:tabular-nums}
 .lnk{white-space:nowrap}
-.lnk a{color:var(--accent);text-decoration:none;font-size:12px;
- border:1px solid var(--line);padding:3px 4px;border-radius:7px;white-space:nowrap;display:inline-block;margin:1px 1px 1px 0}
+.lnk a{color:var(--accent);text-decoration:none;font-size:11.5px;
+ border:1px solid var(--line);padding:2px 4px;border-radius:6px;white-space:nowrap;display:inline-block;margin:1px 1px 1px 0;letter-spacing:-.02em}
 .lnk a.detail{background:var(--accent-soft);border-color:transparent;font-weight:600}
 .lnk a:hover{background:var(--accent-soft)}
 details.country{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:var(--bg);overflow:hidden}
@@ -210,7 +210,7 @@ details.country.focused{border-color:var(--accent);box-shadow:0 0 0 1px var(--ac
 <details class="card sec" open id="sec-rank">
   <summary><h2>ランキング</h2><span class="secnote" id="ranknote"></span></summary>
   <div class="secbody">
-  <p class="hint">都市名クリックでその国に地図が寄り、都市の位置が波紋で光ります。右端の「詳細」で、その都市の月別価格・最安時期をまとめたページを開けます（Googleマップは地図の吹き出しと詳細ページから）。国・地域名クリックでその国だけに絞り込み（もう一度で解除）。列見出し「国・地域」で国順に並べ替え。月セレクトで対象月を選ぶと、その月の価格列・グラフの青丸・並べ替えが切り替わります。都市名の左の☆でお気に入り登録（★のみボタンで絞り込み）。列見出しで並べ替え。「月別推移」は左から1月→12月（1〜9月は2027年・10〜12月は2026年の実測。緑=最安月・赤=最高月・青の縦線=今月／カーソルを合わせると月と価格）、「変動」は年間の最高÷最低。</p>
+  <p class="hint">都市名クリックでその国に地図が寄り、都市の位置が波紋で光ります。右端の「詳細」で、その都市の月別価格・最安時期をまとめたページを開けます。国・地域名クリックでその国だけに絞り込み（もう一度で解除）。列見出し「国・地域」で国順に並べ替え。月セレクトで対象月を選ぶと、その月の価格列・グラフの青丸・並べ替えが切り替わります。都市名の左の☆でお気に入り登録（★のみボタンで絞り込み）。列見出しで並べ替え。「月別推移」は左から1月→12月（1〜9月は2027年・10〜12月は2026年の実測。緑=最安月・赤=最高月・青の縦線=今月／カーソルを合わせると月と価格）、「変動」は年間の最高÷最低。</p>
   <div class="tools">
     <input type="search" id="q" placeholder="都市名・国名で検索">
     <select id="csel"><option value="">すべての国・地域</option></select>
@@ -420,13 +420,13 @@ function sorted(list){
 }
 
 const COLS_MAIN = `<colgroup>
-  <col style="width:3.5%"><col style="width:19%"><col style="width:10.5%"><col style="width:10.5%">
-  <col style="width:8.5%"><col style="width:10.5%"><col style="width:7%"><col style="width:7%">
-  <col style="width:5.5%"><col style="width:5.5%"><col style="width:12.5%"></colgroup>`;
+  <col style="width:3.5%"><col style="width:17.5%"><col style="width:10%"><col style="width:10%">
+  <col style="width:8%"><col style="width:9.5%"><col style="width:6.5%"><col style="width:6.5%">
+  <col style="width:5%"><col style="width:5.5%"><col style="width:18%"></colgroup>`;
 const COLS_COUNTRY = `<colgroup>
-  <col style="width:4%"><col style="width:21%"><col style="width:11.5%">
-  <col style="width:9.5%"><col style="width:12%"><col style="width:8%"><col style="width:8%">
-  <col style="width:6.5%"><col style="width:6%"><col style="width:13.5%"></colgroup>`;
+  <col style="width:4%"><col style="width:19%"><col style="width:11%">
+  <col style="width:9%"><col style="width:11%"><col style="width:7.5%"><col style="width:7.5%">
+  <col style="width:6%"><col style="width:5.5%"><col style="width:19.5%"></colgroup>`;
 const HEAD_MAIN = `<th data-s="rank">#</th><th data-s="name">都市</th><th data-s="country">国・地域</th>
   <th data-s="med" class="num">年間中央値 / 泊</th>
   <th data-s="now" class="num"><span id="nowlabel">${monthLabel(selMonth)}</span></th>
@@ -454,7 +454,7 @@ function cityRow(d, withCountry){
       <td class="num rng">${fmtY(d.hi)}</td>
       <td class="num seas" style="${d.hi/d.lo>=2?'color:var(--b4);font-weight:700':''}">${(d.hi/d.lo).toFixed(2)}×</td>
       <td class="num" style="${thin?'color:var(--sub);opacity:.6':''}">${d.cnt.toLocaleString()}</td>
-      <td class="lnk"><a href="${bookUrl(d)}" target="_blank" rel="noopener">予約</a><a class="detail" href="${cityUrl(d)}" title="${esc(d.name)}の月別価格・最安時期">詳細</a></td>
+      <td class="lnk"><a href="${bookUrl(d)}" target="_blank" rel="noopener">予約</a><a href="${mapUrl(d)}" target="_blank" rel="noopener">地図</a><a class="detail" href="${cityUrl(d)}" title="${esc(d.name)}の月別価格・最安時期">詳細</a></td>
     </tr>`;
 }
 
