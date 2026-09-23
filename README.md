@@ -62,11 +62,24 @@
 |---|---|---|
 | 日付 | 明日チェックイン・3泊（ブラウザ側で毎回計算） | index.html `bookDates()`／生成ページ `BOOK_JS` |
 | 人数・部屋 | 大人1名・1室・子ども0 | `BOOK_OPT`（index.html）／`bookUrl`（build-pages.js） |
-| 絞り込み | 4つ星・口コミ8.0以上・朝食込み・ホテルのみ（アパート等を除外）・JPY表示 | 同上 |
+| 絞り込み | 掲載数と緯度で3段階に自動調整（全条件だと0件になる都市があるため）<br>・共通: 4〜5つ星・口コミ8.0以上・朝食付き・ホテルのみ・中心3km以内<br>・掲載30軒以上: ＋無料Wi-Fi ＋専用バスルーム ＋ダブルベッド（緯度40度未満なら ＋エアコン）<br>・掲載100軒以上: ＋フィットネス ＋眺望 | `bookFilters()`（index.html と build-pages.js） |
 | 表示 | 表の「予約」（ツールチップに条件を明記）・地図の吹き出し・都市/国ページのボタン | — |
 | 言語 | 日本語ページ（`searchresults.ja.html`）。多言語化時は言語ごとに切替 | — |
 
 サイトの価格は「2名1室1泊」基準なので、リンク先（1名・3泊）の表示額とは一致しない。
+
+## 多言語（en）
+
+| 項目 | 内容 |
+|---|---|
+| 生成物 | `en/index.html`（`tools/build-i18n.js`）／`en/city/*.html`・`en/country/*.html`（`tools/build-pages.js`）／`en/disclaimer.html`・`en/privacy.html`・`en/about.html`（手書き） |
+| 訳の正本 | トップ: `tools/i18n/en.js` の `pairs`（原文→訳。件数が合わないとビルド中止）／都市・国ページ: `tools/i18n/pages.js` の `ja`・`en` |
+| 言語の切替 | 固定バーの言語リンク（同じページの他言語版へ）。選んだ言語は `lang` に保存し、次回以降は保存先へ自動遷移 |
+| 自動判定 | 初回のみ、ブラウザ言語が一致しないときに案内バーを出す。**強制リダイレクトはしない**（検索エンジンが両版を見られるようにするため） |
+| hreflang | 全ページに ja / en / x-default（x-default は en） |
+| 既定通貨 | 日本語版 JPY・英語版 USD（`cur` に保存） |
+| Booking リンク | 言語ごとに `searchresults.ja.html` / `searchresults.en-gb.html` |
+| 言語を足す手順 | ①`tools/i18n/pages.js` に言語キーを追加 ②`tools/i18n/<code>.js` を作成 ③`tools/build-i18n.js` の `LANGS` に追加 ④法務3ページを用意 |
 
 ## 多言語ロードマップ（2026-09-23 決定・未着手）
 

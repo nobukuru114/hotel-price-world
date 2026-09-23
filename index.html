@@ -6,6 +6,9 @@
 <title>4つ星ホテル 世界都市 価格ランキング｜120か国348都市を実測</title>
 <meta name="description" content="Booking.comの実勢価格を実測。世界120か国348都市の4つ星ホテル価格を12か月分サンプリングし、年間中央値・月別推移・季節変動で比較できるランキング。地図連動・月別ソート対応。">
 <link rel="canonical" href="https://nobukuru114.github.io/hotel-price-world/">
+<link rel="alternate" hreflang="ja" href="https://nobukuru114.github.io/hotel-price-world/">
+<link rel="alternate" hreflang="en" href="https://nobukuru114.github.io/hotel-price-world/en/">
+<link rel="alternate" hreflang="x-default" href="https://nobukuru114.github.io/hotel-price-world/en/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="4つ星ホテル 世界都市 価格ランキング｜120か国348都市を実測">
 <meta property="og:description" content="Booking.comの実勢価格を実測。世界120か国348都市の4つ星ホテル価格を12か月分サンプリングし、年間中央値・月別推移・季節変動で比較できるランキング。地図連動・月別ソート対応。">
@@ -67,7 +70,14 @@ a{color:inherit}
 .jchip:hover{color:#fff;border-color:rgba(255,255,255,.4)}
 .jchip.on{color:#fff;border-color:#fff;font-weight:600}
 .jumprow[hidden],.jchips:empty{display:none}
-.cursel{margin-left:auto;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 10px;cursor:pointer;max-width:150px}
+.tbright{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.langlink{font-size:12px;color:var(--onnavy2);text-decoration:none;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 12px;white-space:nowrap}
+.langlink:hover{color:#fff;border-color:rgba(255,255,255,.45)}
+.langbar{background:rgba(37,99,235,.14);border-bottom:1px solid rgba(255,255,255,.12);color:var(--onnavy);font-size:13px}
+.langbar .wrap{display:flex;align-items:center;gap:12px;padding-top:9px;padding-bottom:9px;flex-wrap:wrap}
+.langbar a{color:#93c5fd;font-weight:600}
+.langbar button{margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--onnavy2);border-radius:999px;padding:3px 10px;font-size:12px;font-family:inherit;cursor:pointer}
+.cursel{margin-left:0;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 10px;cursor:pointer;max-width:150px}
 .cursel:hover{color:#fff;border-color:rgba(255,255,255,.45)}
 .cursel option{color:#000}
 .themebtn{font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;
@@ -331,8 +341,11 @@ body.mapfull .floathead{display:none}
         <span class="jchips" id="secnav-jchips"></span>
       </div>
     </nav>
-    <select id="cursel" class="cursel" aria-label="表示通貨"></select>
-    <button type="button" id="themebtn" class="themebtn" title="表示モードを切り替え（自動／ライト／ダーク）" aria-label="表示モード"></button>
+    <div class="tbright">
+      <a class="langlink" id="langlink" href="en/" hreflang="en">English</a>
+      <select id="cursel" class="cursel" aria-label="表示通貨"></select>
+      <button type="button" id="themebtn" class="themebtn" title="表示モードを切り替え（自動／ライト／ダーク）" aria-label="表示モード"></button>
+    </div>
   </div>
 </nav>
 
@@ -509,13 +522,28 @@ const enc = encodeURIComponent;
 const cname = d => (CJ[d.c] ? CJ[d.c].ja : d.c);
 const cflag = d => (CJ[d.c] ? CJ[d.c].f : "");
 // Booking.com への検索リンク: 明日チェックイン・3泊・大人1名・1室・JPY・4つ星・安い順（条件は BOOK_OPT の1か所で管理）
-const BOOK_OPT = { nights: 3, adults: 1, filters: "class=4;review_score=80;mealplan=1;ht_id=204", label: "4つ星・口コミ8.0以上・朝食込み・ホテルのみ" };   // 4つ星／口コミ8.0+／朝食込み／施設タイプ=ホテル
+const BOOK_OPT = { nights: 3, adults: 1 };
 function bookDates(){ const d = new Date(); d.setDate(d.getDate() + 1); const ci = d.toISOString().slice(0,10);
   d.setDate(d.getDate() + BOOK_OPT.nights); return { ci, co: d.toISOString().slice(0,10) }; }
+// Booking.com の絞り込み。掲載数 cnt と緯度 lat で3段階に自動調整する。
+// 全条件を一律に付けると寒冷地（エアコン非設置）や小規模都市で0件になるため（2026-09-23 実測）。
+//   共通      : 4つ星＋5つ星／口コミ8.0以上／朝食付き／ホテル／中心から3km以内
+//   cnt >= 30 : ＋無料Wi-Fi ＋専用バスルーム ＋ダブルベッド（|lat| < 40 のときは ＋エアコン）
+//   cnt >= 100: ＋フィットネス ＋眺望
+function bookFilters(d){
+  const f = ["class=4","class=5","ht_id=204","review_score=80","mealplan=1","distance=3000"];
+  const l = ["4〜5つ星","口コミ8.0以上","朝食付き","ホテル","中心3km以内"];
+  const cnt = d && d.cnt != null ? d.cnt : 0, lat = d && d.lat != null ? Math.abs(d.lat) : 0;
+  if(cnt >= 30){ f.push("hotelfacility=107","roomfacility=38","tdb=3"); l.push("無料Wi-Fi","専用バスルーム","ダブルベッド");
+    if(lat < 40){ f.push("roomfacility=11"); l.push("エアコン"); } }
+  if(cnt >= 100){ f.push("hotelfacility=11","roomfacility=81"); l.push("フィットネス","眺望"); }
+  return { nflt: f.join(";"), label: l.join("・") };
+}
 const bookUrl = d => { const {ci, co} = bookDates();
   return "https://www.booking.com/searchresults.ja.html?ss=" + enc(d.name + ", " + d.c)
-  + "&checkin=" + ci + "&checkout=" + co + "&group_adults=" + BOOK_OPT.adults + "&no_rooms=1&group_children=0&selected_currency=JPY&nflt=" + enc(BOOK_OPT.filters); };
-const bookTitle = () => { const {ci} = bookDates(); return "Booking.com で検索: " + ci.slice(5).replace("-", "/") + " から" + BOOK_OPT.nights + "泊・大人" + BOOK_OPT.adults + "名・" + BOOK_OPT.label; };
+  + "&checkin=" + ci + "&checkout=" + co + "&group_adults=" + BOOK_OPT.adults + "&no_rooms=1&group_children=0&selected_currency=JPY&nflt=" + enc(bookFilters(d).nflt); };
+const bookTitle = d => { const {ci} = bookDates();
+  return "Booking.com で検索: " + ci.slice(5).replace("-", "/") + " から" + BOOK_OPT.nights + "泊・大人" + BOOK_OPT.adults + "名／" + bookFilters(d).label; };
 const mapUrl = d => "https://www.google.com/maps/search/?api=1&query=" + enc(d.name + ", " + d.c);
 
 { const nC = new Set(DATA.map(d=>d.c)).size;
@@ -653,7 +681,7 @@ function cityRow(d, withCountry){
       <td class="num rng">${fmtY(d.hi)}</td>
       <td class="num seas" style="${d.hi/d.lo>=2?'color:var(--b4);font-weight:700':''}">${(d.hi/d.lo).toFixed(2)}×</td>
       <td class="num" style="${thin?'color:var(--sub);opacity:.6':''}">${d.cnt.toLocaleString()}</td>
-      <td class="lnk"><a href="${bookUrl(d)}" target="_blank" rel="noopener" title="${bookTitle()}">予約</a><a href="${mapUrl(d)}" target="_blank" rel="noopener">地図</a><a class="detail" href="${cityUrl(d)}" title="${esc(jname(d))}の月別価格・最安時期">詳細</a></td>
+      <td class="lnk"><a href="${bookUrl(d)}" target="_blank" rel="noopener" title="${bookTitle(d)}">予約</a><a href="${mapUrl(d)}" target="_blank" rel="noopener">地図</a><a class="detail" href="${cityUrl(d)}" title="${esc(jname(d))}の月別価格・最安時期">詳細</a></td>
     </tr>`;
 }
 
@@ -1275,6 +1303,26 @@ navJump = (function(){
 (function(){ const tb = document.getElementById("topbar"); if(!tb) return;
   const set = () => document.documentElement.style.setProperty("--tbh", tb.offsetHeight + "px");
   set(); window.addEventListener("resize", set); if(window.ResizeObserver) new ResizeObserver(set).observe(tb); })();
+// ---- 言語（初回はバーで案内するだけ。検索エンジンが両版を見られるよう強制リダイレクトはしない） ----
+(function(){
+  const HERE = "ja";
+  const OTHER = { code:"en", href:"en/", label:"English", msg:"This page is also available in English." };
+  let saved = null; try{ saved = localStorage.getItem("lang"); }catch(e){}
+  const link = document.getElementById("langlink");
+  if(link) link.addEventListener("click", ()=>{ try{ localStorage.setItem("lang", OTHER.code); }catch(e){} });
+  if(saved === OTHER.code){ location.replace(OTHER.href + location.hash); return; }   // 前回自分で選んだ言語へ
+  if(saved === HERE) return;
+  const pref = (navigator.languages || [navigator.language || ""]).map(x => String(x).toLowerCase());
+  if(pref.some(x => x.split("-")[0] === HERE)) return;                                 // ブラウザがこの言語を望んでいる
+  const bar = document.createElement("div");
+  bar.className = "langbar";
+  bar.innerHTML = '<div class="wrap"><span>' + OTHER.msg + '</span> <a href="' + OTHER.href + '">' + OTHER.label + ' →</a>'
+    + '<button type="button">×</button></div>';
+  bar.querySelector("a").addEventListener("click", ()=>{ try{ localStorage.setItem("lang", OTHER.code); }catch(e){} });
+  bar.querySelector("button").addEventListener("click", ()=>{ try{ localStorage.setItem("lang", HERE); }catch(e){} bar.remove(); });
+  const hero = document.querySelector(".hero");
+  if(hero) hero.parentNode.insertBefore(bar, hero);
+})();
 window.addEventListener("resize",()=>setTimeout(fit,150));
 if(window.ResizeObserver){ let t; new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(fit,180); }).observe(document.getElementById("map")); }
 </script>
