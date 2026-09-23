@@ -37,16 +37,25 @@ const BANDS = [
 const bandOf = v => BANDS.findIndex(b => v <= b.max);   // index.html と同じ判定（上限を含む）
 const esc  = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const yen  = n => "¥" + Number(n).toLocaleString("ja-JP");
+const money = n => `<span class="jpy" data-jpy="${Number(n)}">${yen(n)}</span>`;   // 本文用（ブラウザ側で表示通貨に換算）
+const RATES = (() => { const m = src.match(/^const RATES = (.*);$/m); if(!m) throw new Error("RATES not found in index.html"); return JSON.parse(m[1]); })();
+const CURS = {JPY:["¥","日本円"],USD:["$","米ドル"],EUR:["€","ユーロ"],GBP:["£","英ポンド"],CNY:["CN¥","人民元"],TWD:["NT$","台湾ドル"],HKD:["HK$","香港ドル"],KRW:["₩","韓国ウォン"],SGD:["S$","シンガポールドル"],THB:["฿","タイバーツ"],AUD:["A$","豪ドル"],CAD:["C$","カナダドル"],CHF:["CHF ","スイスフラン"],INR:["₹","インドルピー"],BRL:["R$","ブラジルレアル"],MXN:["MX$","メキシコペソ"],IDR:["Rp","ルピア"],VND:["₫","ベトナムドン"],RUB:["₽","ルーブル"],AED:["AED ","UAEディルハム"],PHP:["₱","フィリピンペソ"],MYR:["RM","リンギット"]};
+const CUR_JS = `<script>(function(){var R=${JSON.stringify(RATES)},C=${JSON.stringify(CURS)},cur="JPY";try{var c=localStorage.getItem("cur");if(c&&R[c])cur=c;}catch(e){}
+function f(n){if(cur==="JPY")return "¥"+n.toLocaleString("ja-JP");var v=n*R[cur],d=v<10?2:v<100?1:0;return C[cur][0]+v.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function paint(){document.querySelectorAll(".jpy[data-jpy]").forEach(function(e){e.textContent=f(+e.dataset.jpy);});}
+var tb=document.querySelector(".tbwrap");if(tb){var s=document.createElement("select");s.className="cursel";s.setAttribute("aria-label","表示通貨");s.innerHTML=Object.keys(R).filter(function(k){return k!=="date"}).map(function(k){return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+k+' '+C[k][1]+'</option>'}).join("");s.title="表示通貨。日本円以外は "+R.date+" 時点のレートで換算した目安";s.addEventListener("change",function(){cur=R[s.value]?s.value:"JPY";try{localStorage.setItem("cur",cur)}catch(e){}paint();});tb.appendChild(s);}
+paint();})();</script>`;
 const enc  = encodeURIComponent;
 const cname = d => (CJ[d.c] ? CJ[d.c].ja : d.c);
 const cflag = d => (CJ[d.c] ? CJ[d.c].f : "");
 const jname = d => d.ja || d.name;                                  // 日本語名（主表示）
 const both  = d => esc(jname(d)) + (d.ja && d.ja !== d.name ? "（" + esc(d.name) + "）" : "");   // 日本語（英語）
 const kanji = d => "";                                               // 旧: 漢字併記は ja に統合済み
+const BOOK_FILTERS = "class=4;review_score=80;mealplan=1;ht_id=204";   // 4つ星／口コミ8.0+／朝食込み／ホテルのみ（index.html の BOOK_OPT と同じ）
 // Booking.com リンク: 日付（明日から3泊）はブラウザ側の BOOK_JS が付ける。人数・通貨・並び順はここで固定
 const bookUrl = d => "https://www.booking.com/searchresults.ja.html?ss=" + enc(d.name + ", " + d.c)
-  + "&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&order=price&nflt=" + enc("class=4");
-const BOOK_JS = `<script>(function(){var d=new Date();d.setDate(d.getDate()+1);var ci=d.toISOString().slice(0,10);d.setDate(d.getDate()+3);var co=d.toISOString().slice(0,10);document.querySelectorAll('a[href*="booking.com/searchresults"]').forEach(function(a){a.href+="&checkin="+ci+"&checkout="+co;a.title="Booking.com で検索: "+ci.slice(5).replace("-","/")+" から3泊・大人1名・4つ星・安い順";});})();</script>`;
+  + "&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&nflt=" + enc(BOOK_FILTERS);
+const BOOK_JS = `<script>(function(){var d=new Date();d.setDate(d.getDate()+1);var ci=d.toISOString().slice(0,10);d.setDate(d.getDate()+3);var co=d.toISOString().slice(0,10);document.querySelectorAll('a[href*="booking.com/searchresults"]').forEach(function(a){a.href+="&checkin="+ci+"&checkout="+co;a.title="Booking.com で検索: "+ci.slice(5).replace("-","/")+" から3泊・大人1名・4つ星・口コミ8.0以上・朝食込み・ホテルのみ";});})();</script>`;
 const mapUrl = d => "https://www.google.com/maps/search/?api=1&query=" + enc(d.name + ", " + d.c);
 
 const slugify = s => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"")
@@ -99,7 +108,7 @@ function monthRows(d) {
               : (v > d.med ? "+" : "−") + Math.round(Math.abs(v - d.med) / d.med * 100) + "%");
     return `<tr>
       <th>${disp + 1}月<small>${YEAR(disp)}年</small></th>
-      <td class="num">${v == null ? "—" : yen(v)}</td>
+      <td class="num">${v == null ? "—" : money(v)}</td>
       <td class="num sub">${diff}</td>
       <td class="barc"><span class="bar" style="width:${w}%;background:${v == null ? "transparent" : BANDS[bandOf(v)].c}"></span>${tag}</td>
     </tr>`;
@@ -112,7 +121,7 @@ function neighbours(d) {
     .sort((a,b) => Math.abs(a.med - d.med) - Math.abs(b.med - d.med)).slice(0, 8);
   const li = list => list.map(x =>
     `<li><a href="${x.__slug}.html">${esc(jname(x))}<small>${esc(x.name)}</small></a>
-     <span class="sub">${cflag(x)} ${esc(cname(x))} ${yen(x.med)}</span></li>`).join("");
+     <span class="sub">${cflag(x)} ${esc(cname(x))} ${money(x.med)}</span></li>`).join("");
   let out = "";
   if (same.length) out += `<section class="card"><h2>${esc(cname(d))}の他の都市</h2><ul class="links">${li(same)}</ul>
     <p class="sub"><a href="../country/${CMAP[d.c].slug}.html">${esc(cname(d))}の全 ${byCountry[d.c].length} 都市と相場をまとめて見る →</a></p></section>`;
@@ -127,9 +136,9 @@ function summary(d) {
   const hiM = known.reduce((a,b) => b[0] > a[0] ? b : a)[1] + 1;
   const ratio = (d.hi / d.lo);
   const nm = both(d);
-  let s = `${nm}の4つ星ホテルは、大人2名1室1泊の税込中央値で<b>${yen(d.med)}</b>。`;
+  let s = `${nm}の4つ星ホテルは、大人2名1室1泊の税込中央値で<b>${money(d.med)}</b>。`;
   s += `世界${DATA.length}都市中${d.__rank}番目に安く、${esc(cname(d))}国内では${byCountry[d.c].length}都市中${d.__crank}番目です。`;
-  s += `もっとも安いのは<b>${loM}月の${yen(d.lo)}</b>、もっとも高いのは<b>${hiM}月の${yen(d.hi)}</b>で、その差は${ratio.toFixed(2)}倍。`;
+  s += `もっとも安いのは<b>${loM}月の${money(d.lo)}</b>、もっとも高いのは<b>${hiM}月の${money(d.hi)}</b>で、その差は${ratio.toFixed(2)}倍。`;
   s += ratio >= 2 ? "季節による振れ幅が大きいため、時期の選び方で宿泊費が倍近く変わります。"
      : ratio >= 1.4 ? "時期を選べば1〜2割は安く泊まれます。"
      : "年間を通して価格は比較的安定しています。";
@@ -190,9 +199,9 @@ DATA.forEach(d => {
 <p class="lead">${sm.html}</p>
 
 <div class="stats">
-  <div class="stat"><span>年間中央値</span><b style="color:${BANDS[bandOf(d.med)].c}">${yen(d.med)}</b><small>1泊・大人2名・税込</small></div>
-  <div class="stat"><span>最安月</span><b>${sm.loM}月</b><small>${yen(d.lo)}</small></div>
-  <div class="stat"><span>最高月</span><b>${sm.hiM}月</b><small>${yen(d.hi)}</small></div>
+  <div class="stat"><span>年間中央値</span><b style="color:${BANDS[bandOf(d.med)].c}">${money(d.med)}</b><small>1泊・大人2名・税込</small></div>
+  <div class="stat"><span>最安月</span><b>${sm.loM}月</b><small>${money(d.lo)}</small></div>
+  <div class="stat"><span>最高月</span><b>${sm.hiM}月</b><small>${money(d.hi)}</small></div>
   <div class="stat"><span>季節変動</span><b>${sm.ratio.toFixed(2)}×</b><small>最高÷最安</small></div>
   <div class="stat"><span>世界順位</span><b>${d.__rank}位</b><small>${DATA.length}都市中・安い順</small></div>
   <div class="stat"><span>掲載数</span><b>${d.cnt.toLocaleString()}軒</b><small>4つ星${d.cnt < 30 ? "・少なめ" : ""}</small></div>
@@ -211,9 +220,9 @@ ${monthRows(d)}
 <section class="card">
 <h2>${disp}に安く泊まるなら</h2>
 <ul>
-  <li><b>${sm.loM}月</b>がもっとも安く、年間中央値より${Math.round((1 - d.lo / d.med) * 100)}%安い ${yen(d.lo)} です。</li>
-  <li><b>${sm.hiM}月</b>はもっとも高く、年間中央値より${Math.round((d.hi / d.med - 1) * 100)}%高い ${yen(d.hi)} になります。</li>
-  <li>${sm.hiM}月に${sm.loM}月と同じ予算で泊まろうとすると、1泊あたり ${yen(d.hi - d.lo)} の差を埋める必要があります。</li>
+  <li><b>${sm.loM}月</b>がもっとも安く、年間中央値より${Math.round((1 - d.lo / d.med) * 100)}%安い ${money(d.lo)} です。</li>
+  <li><b>${sm.hiM}月</b>はもっとも高く、年間中央値より${Math.round((d.hi / d.med - 1) * 100)}%高い ${money(d.hi)} になります。</li>
+  <li>${sm.hiM}月に${sm.loM}月と同じ予算で泊まろうとすると、1泊あたり ${money(d.hi - d.lo)} の差を埋める必要があります。</li>
 </ul>
 <p class="cta"><a class="btn" href="${bookUrl(d)}" target="_blank" rel="noopener">Booking.comで${nm}の4つ星ホテルを探す</a>
 <a class="btn ghost" href="${mapUrl(d)}" target="_blank" rel="noopener">地図で見る</a></p>
@@ -231,7 +240,7 @@ ${neighbours(d)}
 
 <p class="backlink"><a href="../">← ${DATA.length}都市の一覧・地図に戻る</a></p>
 
-<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>${BOOK_JS}
+<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>${BOOK_JS}${CUR_JS}
 </div></body></html>`;
   fs.writeFileSync(path.join(outDir, d.__slug + ".html"), html);
 });
@@ -251,7 +260,7 @@ function countryMonthRows(k) {
     const diff = v == null ? "—" : (v === k.mid ? "±0%"
               : (v > k.mid ? "+" : "−") + Math.round(Math.abs(v - k.mid) / k.mid * 100) + "%");
     return `<tr><th>${disp + 1}月<small>${YEAR(disp)}年</small></th>
-      <td class="num">${v == null ? "—" : yen(v)}</td>
+      <td class="num">${v == null ? "—" : money(v)}</td>
       <td class="num sub">${diff}</td>
       <td class="barc"><span class="bar" style="width:${w}%;background:${v == null ? "transparent" : BANDS[bandOf(v)].c}"></span>${tag}</td></tr>`;
   }).join("\n");
@@ -296,9 +305,9 @@ COUNTRIES.forEach(k => {
     return `<tr>
       <td class="num sub">${i + 1}</td>
       <td><a href="../city/${d.__slug}.html">${esc(jname(d))}</a><small>${esc(d.name)}</small></td>
-      <td class="num"><b style="color:${BANDS[bandOf(d.med)].c}">${yen(d.med)}</b></td>
-      <td class="num sub">${cl}月 ${yen(d.lo)}</td>
-      <td class="num sub">${ch}月 ${yen(d.hi)}</td>
+      <td class="num"><b style="color:${BANDS[bandOf(d.med)].c}">${money(d.med)}</b></td>
+      <td class="num sub">${cl}月 ${money(d.lo)}</td>
+      <td class="num sub">${ch}月 ${money(d.hi)}</td>
       <td class="num sub">${(d.hi / d.lo).toFixed(2)}×</td>
       <td class="num sub">${d.cnt.toLocaleString()}</td></tr>`;
   }).join("\n");
@@ -327,17 +336,17 @@ COUNTRIES.forEach(k => {
 <h1>${esc(k.ja)}の4つ星ホテル料金相場</h1>
 <p class="upd">${k.flag} ${esc(k.c)}／Booking.com 実測・調査日 ${CAPTURED}</p>
 
-<p class="lead">${esc(k.ja)}の4つ星ホテルは、掲載 ${k.list.length} 都市の中央値で<b>${yen(k.mid)}</b>（大人2名1室1泊・税込）。
-${COUNTRIES.length}か国中${k.rank}番目に安い国です。もっとも安いのは<b>${esc(jname(cheapest))}の${yen(cheapest.med)}</b>${k.list.length > 1 ? `、もっとも高いのは<b>${esc(jname(priciest))}の${yen(priciest.med)}</b>` : ""}。
-国全体では<b>${loM}月</b>がもっとも安く（${yen(loV)}）、<b>${hiM}月</b>がもっとも高くなります（${yen(hiV)}）。</p>
+<p class="lead">${esc(k.ja)}の4つ星ホテルは、掲載 ${k.list.length} 都市の中央値で<b>${money(k.mid)}</b>（大人2名1室1泊・税込）。
+${COUNTRIES.length}か国中${k.rank}番目に安い国です。もっとも安いのは<b>${esc(jname(cheapest))}の${money(cheapest.med)}</b>${k.list.length > 1 ? `、もっとも高いのは<b>${esc(jname(priciest))}の${money(priciest.med)}</b>` : ""}。
+国全体では<b>${loM}月</b>がもっとも安く（${money(loV)}）、<b>${hiM}月</b>がもっとも高くなります（${money(hiV)}）。</p>
 
 <div class="stats">
-  <div class="stat"><span>都市中央値</span><b style="color:${BANDS[bandOf(k.mid)].c}">${yen(k.mid)}</b><small>1泊・大人2名・税込</small></div>
+  <div class="stat"><span>都市中央値</span><b style="color:${BANDS[bandOf(k.mid)].c}">${money(k.mid)}</b><small>1泊・大人2名・税込</small></div>
   <div class="stat"><span>世界順位</span><b>${k.rank}位</b><small>${COUNTRIES.length}か国中・安い順</small></div>
   <div class="stat"><span>掲載都市</span><b>${k.list.length}都市</b><small>4つ星 計${k.list.reduce((s,d)=>s+d.cnt,0).toLocaleString()}軒</small></div>
-  <div class="stat"><span>最安の都市</span><b>${esc(jname(cheapest))}</b><small>${yen(cheapest.med)}</small></div>
-  <div class="stat"><span>安い時期</span><b>${loM}月</b><small>${yen(loV)}</small></div>
-  <div class="stat"><span>高い時期</span><b>${hiM}月</b><small>${yen(hiV)}</small></div>
+  <div class="stat"><span>最安の都市</span><b>${esc(jname(cheapest))}</b><small>${money(cheapest.med)}</small></div>
+  <div class="stat"><span>安い時期</span><b>${loM}月</b><small>${money(loV)}</small></div>
+  <div class="stat"><span>高い時期</span><b>${hiM}月</b><small>${money(hiV)}</small></div>
 </div>
 
 <section class="card">
@@ -363,18 +372,18 @@ ${countryMonthRows(k)}
 <section class="card">
 <h2>${esc(k.ja)}に安く泊まるなら</h2>
 <ul>
-  <li>国内でもっとも安いのは<b>${esc(jname(cheapest))}</b>の ${yen(cheapest.med)} です。<a href="../city/${cheapest.__slug}.html">${esc(jname(cheapest))}の月別価格を見る →</a></li>
-  <li>時期では<b>${loM}月</b>が底値で、もっとも高い${hiM}月と比べて1泊あたり ${yen(hiV - loV)} 安くなります。</li>
-  ${k.list.length > 1 ? `<li>${esc(jname(priciest))}（${yen(priciest.med)}）と${esc(jname(cheapest))}（${yen(cheapest.med)}）では、同じ国内でも ${(priciest.med / cheapest.med).toFixed(1)} 倍の差があります。</li>` : ""}
+  <li>国内でもっとも安いのは<b>${esc(jname(cheapest))}</b>の ${money(cheapest.med)} です。<a href="../city/${cheapest.__slug}.html">${esc(jname(cheapest))}の月別価格を見る →</a></li>
+  <li>時期では<b>${loM}月</b>が底値で、もっとも高い${hiM}月と比べて1泊あたり ${money(hiV - loV)} 安くなります。</li>
+  ${k.list.length > 1 ? `<li>${esc(jname(priciest))}（${money(priciest.med)}）と${esc(jname(cheapest))}（${money(cheapest.med)}）では、同じ国内でも ${(priciest.med / cheapest.med).toFixed(1)} 倍の差があります。</li>` : ""}
 </ul>
-<p class="cta"><a class="btn" href="https://www.booking.com/searchresults.ja.html?ss=${enc(k.c)}&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&order=price&nflt=${enc("class=4")}" target="_blank" rel="noopener">Booking.comで${esc(k.ja)}の4つ星ホテルを探す</a></p>
+<p class="cta"><a class="btn" href="https://www.booking.com/searchresults.ja.html?ss=${enc(k.c)}&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&nflt=${enc(BOOK_FILTERS)}" target="_blank" rel="noopener">Booking.comで${esc(k.ja)}の4つ星ホテルを探す</a></p>
 <p class="sub">価格は ${CAPTURED} 時点の調査値です。最新の料金と空室は予約サイトでご確認ください。</p>
 </section>
 
 <section class="card">
 <h2>相場が近い国・地域</h2>
 <ul class="links">
-${near.map(x => `<li><a href="${x.slug}.html">${x.flag} ${esc(x.ja)}</a><span class="sub">${yen(x.mid)}・${x.list.length}都市</span></li>`).join("")}
+${near.map(x => `<li><a href="${x.slug}.html">${x.flag} ${esc(x.ja)}</a><span class="sub">${money(x.mid)}・${x.list.length}都市</span></li>`).join("")}
 </ul>
 </section>
 
@@ -387,7 +396,7 @@ ${near.map(x => `<li><a href="${x.slug}.html">${x.flag} ${esc(x.ja)}</a><span cl
 
 <p class="backlink"><a href="../">← ${DATA.length}都市・${COUNTRIES.length}か国の一覧と地図に戻る</a></p>
 
-<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>${BOOK_JS}
+<footer><a href="../">ランキング</a><a href="../disclaimer.html">免責事項</a><a href="../privacy.html">プライバシーポリシー</a><a href="../about.html">運営者情報</a></footer>${BOOK_JS}${CUR_JS}
 </div></body></html>`;
   fs.writeFileSync(path.join(cDir, k.slug + ".html"), html);
 });

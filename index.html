@@ -67,7 +67,10 @@ a{color:inherit}
 .jchip:hover{color:#fff;border-color:rgba(255,255,255,.4)}
 .jchip.on{color:#fff;border-color:#fff;font-weight:600}
 .jumprow[hidden],.jchips:empty{display:none}
-.themebtn{margin-left:auto;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;
+.cursel{margin-left:auto;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 10px;cursor:pointer;max-width:150px}
+.cursel:hover{color:#fff;border-color:rgba(255,255,255,.45)}
+.cursel option{color:#000}
+.themebtn{font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;
  border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap}
 .themebtn:hover{color:#fff;border-color:rgba(255,255,255,.45)}
 /* ---- ヒーロー ---- */
@@ -328,6 +331,7 @@ body.mapfull .floathead{display:none}
         <span class="jchips" id="secnav-jchips"></span>
       </div>
     </nav>
+    <select id="cursel" class="cursel" aria-label="表示通貨"></select>
     <button type="button" id="themebtn" class="themebtn" title="表示モードを切り替え（自動／ライト／ダーク）" aria-label="表示モード"></button>
   </div>
 </nav>
@@ -484,18 +488,34 @@ const BANDS = [
 ];
 const bandOf = v => BANDS.findIndex(b => v <= b.max);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const fmtY = n => "¥" + n.toLocaleString("ja-JP");
+// ---- 表示通貨（JPY が正本・他通貨は取得日近傍の固定レートで換算した目安） ----
+const RATES = {"date":"2026-09-23","JPY":1,"USD":0.006353,"EUR":0.005548,"GBP":0.00476,"CNY":0.042655,"TWD":0.201346,"HKD":0.049825,"KRW":8.614579,"SGD":0.008104,"THB":0.210854,"AUD":0.008934,"CAD":0.008931,"CHF":0.005216,"INR":0.607678,"BRL":0.03254,"MXN":0.109779,"IDR":113.332969,"VND":165.038201,"RUB":0.534833,"AED":0.023335,"PHP":0.397296,"MYR":0.025898};
+const CURS = {JPY:["¥","日本円"],USD:["$","米ドル"],EUR:["€","ユーロ"],GBP:["£","英ポンド"],CNY:["CN¥","人民元"],TWD:["NT$","台湾ドル"],HKD:["HK$","香港ドル"],KRW:["₩","韓国ウォン"],SGD:["S$","シンガポールドル"],THB:["฿","タイバーツ"],AUD:["A$","豪ドル"],CAD:["C$","カナダドル"],CHF:["CHF ","スイスフラン"],INR:["₹","インドルピー"],BRL:["R$","ブラジルレアル"],MXN:["MX$","メキシコペソ"],IDR:["Rp","ルピア"],VND:["₫","ベトナムドン"],RUB:["₽","ルーブル"],AED:["AED ","UAEディルハム"],PHP:["₱","フィリピンペソ"],MYR:["RM","リンギット"]};
+const CUR_KEY = "cur";
+let curCode = "JPY";
+try{ const c = localStorage.getItem(CUR_KEY); if(c && RATES[c]) curCode = c; }catch(e){}
+function fmtMoney(n){
+  if(n == null) return "—";
+  if(curCode === "JPY") return "¥" + n.toLocaleString("ja-JP");
+  const v = n * RATES[curCode], dec = v < 10 ? 2 : v < 100 ? 1 : 0;
+  return CURS[curCode][0] + v.toLocaleString("en-US", {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+const fmtY = fmtMoney;
+const bandLabel = i => { const b = BANDS[i], p = BANDS[i-1];
+  if(i === 0) return "〜" + fmtY(b.max);
+  if(b.max === Infinity) return fmtY(p.max) + "〜";
+  return fmtY(p.max) + "〜" + (curCode === "JPY" ? b.max.toLocaleString("ja-JP") : fmtY(b.max)); };
 const enc = encodeURIComponent;
 const cname = d => (CJ[d.c] ? CJ[d.c].ja : d.c);
 const cflag = d => (CJ[d.c] ? CJ[d.c].f : "");
 // Booking.com への検索リンク: 明日チェックイン・3泊・大人1名・1室・JPY・4つ星・安い順（条件は BOOK_OPT の1か所で管理）
-const BOOK_OPT = { nights: 3, adults: 1 };
+const BOOK_OPT = { nights: 3, adults: 1, filters: "class=4;review_score=80;mealplan=1;ht_id=204", label: "4つ星・口コミ8.0以上・朝食込み・ホテルのみ" };   // 4つ星／口コミ8.0+／朝食込み／施設タイプ=ホテル
 function bookDates(){ const d = new Date(); d.setDate(d.getDate() + 1); const ci = d.toISOString().slice(0,10);
   d.setDate(d.getDate() + BOOK_OPT.nights); return { ci, co: d.toISOString().slice(0,10) }; }
 const bookUrl = d => { const {ci, co} = bookDates();
   return "https://www.booking.com/searchresults.ja.html?ss=" + enc(d.name + ", " + d.c)
-  + "&checkin=" + ci + "&checkout=" + co + "&group_adults=" + BOOK_OPT.adults + "&no_rooms=1&group_children=0&selected_currency=JPY&order=price&nflt=" + enc("class=4"); };
-const bookTitle = () => { const {ci} = bookDates(); return "Booking.com で検索: " + ci.slice(5).replace("-", "/") + " から" + BOOK_OPT.nights + "泊・大人" + BOOK_OPT.adults + "名・4つ星・安い順"; };
+  + "&checkin=" + ci + "&checkout=" + co + "&group_adults=" + BOOK_OPT.adults + "&no_rooms=1&group_children=0&selected_currency=JPY&nflt=" + enc(BOOK_OPT.filters); };
+const bookTitle = () => { const {ci} = bookDates(); return "Booking.com で検索: " + ci.slice(5).replace("-", "/") + " から" + BOOK_OPT.nights + "泊・大人" + BOOK_OPT.adults + "名・" + BOOK_OPT.label; };
 const mapUrl = d => "https://www.google.com/maps/search/?api=1&query=" + enc(d.name + ", " + d.c);
 
 { const nC = new Set(DATA.map(d=>d.c)).size;
@@ -545,7 +565,7 @@ function paintKPIs(){
 }
 function paintLegend(){
   const el = document.getElementById("maplegend"); if(!el) return;
-  el.innerHTML = BANDS.map(b => `<span><i style="background:var(${b.c})"></i>${b.label}</span>`).join("");
+  el.innerHTML = BANDS.map((b,i) => `<span><i style="background:var(${b.c})"></i>${bandLabel(i)}</span>`).join("");
 }
 function paintAxis(){
   const el = document.getElementById("caxis"); if(!el) return;
@@ -714,7 +734,7 @@ function paintBands(){
   const mx = Math.max(1, ...counts);
   document.getElementById("bands").innerHTML = BANDS.map((b,i)=>
     `<div class="bandbox" role="button" tabindex="0" data-b="${i}" aria-pressed="${filterBand===i}" style="--bc:var(${b.c})">
-       <div class="lb">${b.label}</div>
+       <div class="lb">${bandLabel(i)}</div>
        <div class="ct">${counts[i]}<small>都市</small></div>
        <div class="bar"><i style="width:${Math.round(counts[i]/mx*100)}%"></i></div>
      </div>`).join("");
@@ -1077,6 +1097,12 @@ document.getElementById("ctrynote").textContent = new Set(DATA.map(d=>d.c)).size
 syncMonthLabels();
 paintMapHint();
 paintLegend(); paintAxis();
+{ const cs = document.getElementById("cursel");
+  cs.innerHTML = Object.keys(RATES).filter(k => k !== "date").map(k => '<option value="' + k + '"' + (k === curCode ? " selected" : "") + '>' + k + ' ' + CURS[k][1] + '</option>').join("");
+  const note = () => { cs.title = curCode === "JPY" ? "表示通貨（元データは日本円）" : "表示通貨: " + CURS[curCode][1] + "。" + RATES.date + " 時点のレートで日本円から換算した目安"; };
+  note();
+  cs.addEventListener("change", e => { curCode = RATES[e.target.value] ? e.target.value : "JPY"; try{ localStorage.setItem(CUR_KEY, curCode); }catch(x){}
+    note(); paintBands(); paintTable(); paintCountries(); paintMap(); paintLegend(); paintAxis(); paintFocusBadge(); }); }
 paintBandMonth();
 paintBands(); paintTable(); paintCountries(); paintMap(); paintFocusBadge(); paintFavBtn();
 requestAnimationFrame(fit); setTimeout(fit,300); setTimeout(fit,1200);

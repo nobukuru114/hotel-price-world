@@ -29,6 +29,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
  background:linear-gradient(135deg,#059669,#ca8a04 55%,#9d174d);font-style:normal;font-size:13px;color:#fff;font-weight:800}
 .topbar a.tl{font-size:13px;color:var(--onnavy2);text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap}
 .topbar a.tl:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tbwrap .cursel{margin-left:auto;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 10px;cursor:pointer;max-width:150px}
+.tbwrap .cursel option{color:#000}
 .wrap{max-width:860px;margin:0 auto;padding:26px 16px 60px}
 .back{display:inline-block;font-size:13px;color:var(--accent);text-decoration:none;margin-bottom:18px}
 .back:hover{text-decoration:underline}
