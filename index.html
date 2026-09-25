@@ -542,7 +542,7 @@ function bookFilters(d){
 }
 const bookUrl = d => { const {ci, co} = bookDates();
   return "https://www.booking.com/searchresults.ja.html?ss=" + enc(d.name + ", " + d.c)
-  + "&checkin=" + ci + "&checkout=" + co + "&group_adults=" + BOOK_OPT.adults + "&no_rooms=1&group_children=0&selected_currency=JPY&nflt=" + enc(bookFilters(d).nflt); };
+  + "&checkin=" + ci + "&checkout=" + co + "&group_adults=" + BOOK_OPT.adults + "&no_rooms=1&group_children=0&selected_currency=" + curCode + "&nflt=" + enc(bookFilters(d).nflt); };
 const bookTitle = d => { const {ci} = bookDates();
   return "Booking.com で検索: " + ci.slice(5).replace("-", "/") + " から" + BOOK_OPT.nights + "泊・大人" + BOOK_OPT.adults + "名／" + bookFilters(d).label; };
 const mapUrl = d => "https://www.google.com/maps/search/?api=1&query=" + enc(d.name + ", " + d.c);

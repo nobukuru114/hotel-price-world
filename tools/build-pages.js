@@ -66,7 +66,7 @@ function bookFilters(d, L){
   return { nflt: f.join(";"), label: l.join(L.bk.sep) };
 }
 const bookUrl = (d, L) => "https://www.booking.com/" + L.booking + "?ss=" + enc(d.name + ", " + d.c)
-  + "&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&nflt=" + enc(bookFilters(d, L).nflt);
+  + "&group_adults=1&no_rooms=1&group_children=0&selected_currency=" + L.defCur + "&nflt=" + enc(bookFilters(d, L).nflt);
 
 // ---- 派生値 ---------------------------------------------------------------
 const byMed = DATA.slice().sort((a,b) => a.med - b.med);
@@ -122,9 +122,9 @@ function topbar(L, otherHref) {
 const footer = L => `<footer><a href="../">${esc(L.footRank)}</a><a href="../disclaimer.html">${esc(L.footDisc)}</a><a href="../privacy.html">${esc(L.footPriv)}</a><a href="../about.html">${esc(L.footAbout)}</a></footer>`;
 const bookJs = L => `<script>(function(){var d=new Date();d.setDate(d.getDate()+1);var ci=d.toISOString().slice(0,10);d.setDate(d.getDate()+3);var co=d.toISOString().slice(0,10);document.querySelectorAll('a[href*="booking.com/searchresults"]').forEach(function(a){a.href+="&checkin="+ci+"&checkout="+co;a.title=${L.bookTitleJs};});})();</script>`;
 const curJs = L => { const C = cursFor(keyOf(L)), isJa = keyOf(L) === "ja";
-  return `<script>(function(){var R=${JSON.stringify(RATES)},C=${JSON.stringify(C)},cur=${JSON.stringify(isJa ? "JPY" : "USD")};try{var c=localStorage.getItem("cur");if(c&&R[c])cur=c;}catch(e){}
+  return `<script>(function(){var R=${JSON.stringify(RATES)},C=${JSON.stringify(C)},cur=${JSON.stringify(L.defCur)};try{var c=localStorage.getItem("cur");if(c&&R[c])cur=c;}catch(e){}
 function f(n){if(cur==="JPY")return "¥"+n.toLocaleString(${JSON.stringify(isJa ? "ja-JP" : "en-US")});var v=n*R[cur],d=v<10?2:v<100?1:0;return C[cur][0]+v.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});}
-function paint(){document.querySelectorAll(".jpy[data-jpy]").forEach(function(e){e.textContent=f(+e.dataset.jpy);});}
+function paint(){document.querySelectorAll(".jpy[data-jpy]").forEach(function(e){e.textContent=f(+e.dataset.jpy);});document.querySelectorAll('a[href*="booking.com/searchresults"]').forEach(function(a){a.href=a.href.replace(/selected_currency=[A-Z]+/,"selected_currency="+cur);});}
 var tb=document.querySelector(".tbwrap");if(tb){var s=document.createElement("select");s.className="cursel";s.setAttribute("aria-label",${JSON.stringify(L.curAria)});s.innerHTML=Object.keys(R).filter(function(k){return k!=="date"}).map(function(k){return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+k+' '+C[k][1]+'</option>'}).join("");s.title=${JSON.stringify(L.curTitle(RATES.date))};s.addEventListener("change",function(){cur=R[s.value]?s.value:"JPY";try{localStorage.setItem("cur",cur)}catch(e){}paint();});tb.appendChild(s);}
 paint();})();</script>`; };
 
@@ -223,6 +223,7 @@ ${monthRows(MORDER.map(i => d.m[i]), d.med, L)}
 <ul>${L.cheapLi(sm, d, money).map(x => `<li>${x}</li>`).join("")}</ul>
 <p class="cta"><a class="btn" href="${bookUrl(d, L)}" data-bk="${esc(bookFilters(d, L).label)}" target="_blank" rel="noopener">${esc(L.ctaBook(L.cityShort(d)))}</a>
 <a class="btn ghost" href="${mapUrl(d)}" target="_blank" rel="noopener">${esc(L.ctaMap)}</a></p>
+<p class="sub">${esc(L.bkNote(bookFilters(d, L).label))}</p>
 <p class="sub">${esc(L.ctaNote(CAPTURED))}</p>
 </section>
 ${nb}
@@ -316,7 +317,8 @@ ${monthRows(k.months, k.mid, L)}
 <section class="card">
 <h2>${esc(L.countryCheapH2(name))}</h2>
 <ul>${L.countryCheapLi(ctx).map(x => `<li>${x}</li>`).join("")}</ul>
-<p class="cta"><a class="btn" href="https://www.booking.com/${L.booking}?ss=${enc(k.c)}&group_adults=1&no_rooms=1&group_children=0&selected_currency=JPY&nflt=${enc(bookFilters({cnt:0}, L).nflt)}" data-bk="${esc(bookFilters({cnt:0}, L).label)}" target="_blank" rel="noopener">${esc(L.ctaBookCountry(name))}</a></p>
+<p class="cta"><a class="btn" href="https://www.booking.com/${L.booking}?ss=${enc(k.c)}&group_adults=1&no_rooms=1&group_children=0&selected_currency=${L.defCur}&nflt=${enc(bookFilters({cnt:0}, L).nflt)}" data-bk="${esc(bookFilters({cnt:0}, L).label)}" target="_blank" rel="noopener">${esc(L.ctaBookCountry(name))}</a></p>
+<p class="sub">${esc(L.bkNote(bookFilters({cnt:0}, L).label))}</p>
 <p class="sub">${esc(L.ctaNote(CAPTURED))}</p>
 </section>
 <section class="card">

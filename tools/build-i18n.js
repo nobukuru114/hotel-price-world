@@ -24,6 +24,11 @@ LANGS.forEach(code => {
     process.exit(1);
   }
 
+  // 既定の表示通貨（正本: tools/i18n/pages.js の defCur）
+  const defCur = require("./i18n/pages.js")[code].defCur;
+  if (count(out, 'let curCode = "JPY";') !== 1) throw new Error("curCode not found");
+  out = out.replace('let curCode = "JPY";', "let curCode = " + JSON.stringify(defCur) + ";");
+
   // 通貨名を各言語に差し替え
   const m = out.match(/^const CURS = (.*);$/m);
   if (!m) throw new Error("CURS not found");

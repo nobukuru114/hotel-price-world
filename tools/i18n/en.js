@@ -130,7 +130,6 @@ module.exports = {
    'const MN = ["January","February","March","April","May","June","July","August","September","October","November","December"];\nconst monthLabel = i => MN[i] + (i===NOWI ? " (this month)" : i===(NOWI+1)%12 ? " (next month)" : "");'],
   ['if(curCode === "JPY") return "¥" + n.toLocaleString("ja-JP");', 'if(curCode === "JPY") return "¥" + n.toLocaleString("en-US");'],
   ['(curCode === "JPY" ? b.max.toLocaleString("ja-JP") : fmtY(b.max))', '(curCode === "JPY" ? b.max.toLocaleString("en-US") : fmtY(b.max))'],
-  ['let curCode = "JPY";', 'let curCode = "USD";'],
 
   // ---- Booking リンク ----
   ['return "https://www.booking.com/searchresults.ja.html?ss=" + enc(d.name + ", " + d.c)',

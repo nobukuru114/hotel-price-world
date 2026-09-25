@@ -63,8 +63,9 @@
 | 日付 | 明日チェックイン・3泊（ブラウザ側で毎回計算） | index.html `bookDates()`／生成ページ `BOOK_JS` |
 | 人数・部屋 | 大人1名・1室・子ども0 | `BOOK_OPT`（index.html）／`bookUrl`（build-pages.js） |
 | 絞り込み | 掲載数と緯度で3段階に自動調整（全条件だと0件になる都市があるため）<br>・共通: 4〜5つ星・口コミ8.0以上・朝食付き・ホテルのみ・中心3km以内<br>・掲載30軒以上: ＋無料Wi-Fi ＋専用バスルーム ＋ダブルベッド（緯度40度未満なら ＋エアコン）<br>・掲載100軒以上: ＋フィットネス ＋眺望 | `bookFilters()`（index.html と build-pages.js） |
-| 表示 | 表の「予約」（ツールチップに条件を明記）・地図の吹き出し・都市/国ページのボタン | — |
-| 言語 | 日本語ページ（`searchresults.ja.html`）。多言語化時は言語ごとに切替 | — |
+| 表示 | 表の「予約」（条件はツールチップ）・地図の吹き出し・都市/国ページのボタン（条件をボタン下に常時表示） | `bkNote`（tools/i18n/pages.js） |
+| 言語 | 言語ごとに切替（ja: `searchresults.ja.html`／en: `searchresults.en-gb.html`） | `booking`（tools/i18n/pages.js） |
+| 通貨 | 表示通貨（`cur`）に連動。未選択時は言語の既定通貨 | `defCur`（tools/i18n/pages.js）が既定の正本 |
 
 サイトの価格は「2名1室1泊」基準なので、リンク先（1名・3泊）の表示額とは一致しない。
 
@@ -77,7 +78,7 @@
 | 言語の切替 | 固定バーの言語リンク（同じページの他言語版へ）。選んだ言語は `lang` に保存し、次回以降は保存先へ自動遷移 |
 | 自動判定 | 初回のみ、ブラウザ言語が一致しないときに案内バーを出す。**強制リダイレクトはしない**（検索エンジンが両版を見られるようにするため） |
 | hreflang | 全ページに ja / en / x-default（x-default は en） |
-| 既定通貨 | 日本語版 JPY・英語版 USD（`cur` に保存） |
+| 既定通貨 | 言語ごとに `tools/i18n/pages.js` の `defCur`（トップは build-i18n.js が注入）。選択は `cur` に保存 |
 | Booking リンク | 言語ごとに `searchresults.ja.html` / `searchresults.en-gb.html` |
 | 言語を足す手順 | ①`tools/i18n/pages.js` に言語キーを追加 ②`tools/i18n/<code>.js` を作成 ③`tools/build-i18n.js` の `LANGS` に追加 ④法務3ページを用意 |
 
