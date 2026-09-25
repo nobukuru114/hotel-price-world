@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 価格の定期更新: 毎晩 03:30 に tools/update-prices.js を実行（スリープ中だった場合は次の起床時に1回実行）。
+     登録/解除は tools/launchd/install.sh / uninstall.sh。ログは tools/logs/。 -->
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.nobukuru114.hotel-price-world.update</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/zsh</string><string>-c</string>
+    <string>cd /Users/nobu/Developer/travel-research &amp;&amp; /opt/homebrew/bin/node tools/update-prices.js --limit 12 --push &gt;&gt; tools/logs/update-$(date +%Y-%m).log 2&gt;&amp;1</string>
+  </array>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>30</integer></dict>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <key>ProcessType</key><string>Background</string>
+  <key>LowPriorityIO</key><true/>
+</dict></plist>

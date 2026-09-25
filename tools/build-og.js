@@ -19,6 +19,7 @@ const MINCHO = `"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif T
 
 fs.mkdirSync(path.join(ROOT, "og"), { recursive: true });
 for(const [key, L] of Object.entries(LANGS)){
+  if(key !== "ja" && key !== "en"){ const { LN } = require("./i18n/names.js").localNames(key, L.htmlLang, DATA, CJ); DATA.forEach(d => { d.__ln = LN[d.name + "|" + d.c] || d.name; }); }
   const cur = L.defCur, sym = CURS[cur][0];
   const money = y => { if(cur === "JPY") return "¥" + Math.round(y).toLocaleString("en-US");
     const x = y * RATES[cur], d = x < 10 ? 2 : x < 100 ? 1 : 0; return sym + x.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); };

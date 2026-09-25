@@ -31,6 +31,13 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .topbar a.tl:hover{color:#fff;background:rgba(255,255,255,.08)}
 .tbwrap .cursel{margin-left:auto;font-family:inherit;font-size:12px;color:var(--onnavy2);background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 10px;cursor:pointer;max-width:150px}
 .tbwrap .cursel option{color:#000}
+.tbwrap .langsel{margin-left:8px;max-width:130px}
+.langbar{background:#e8efff;border-bottom:1px solid var(--line,#d6dbe3);font-size:13px}
+.langbar .wrap{display:flex;align-items:center;gap:12px;padding-top:9px;padding-bottom:9px;flex-wrap:wrap}
+.langbar a{font-weight:600}
+.langbar button{margin-left:auto;background:transparent;border:1px solid var(--line,#d6dbe3);border-radius:999px;padding:3px 10px;font-size:12px;font-family:inherit;cursor:pointer;color:inherit}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .langbar{background:#15213a}}
+:root[data-theme="dark"] .langbar{background:#15213a}
 .wrap{max-width:860px;margin:0 auto;padding:26px 16px 60px}
 .back{display:inline-block;font-size:13px;color:var(--accent);text-decoration:none;margin-bottom:18px}
 .back:hover{text-decoration:underline}
@@ -62,7 +69,7 @@ footer a:hover{color:#fff}
 .lead b{color:var(--ink)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:1px}
-.stat span{font-size:11px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.stat>span{font-size:11px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 .stat b{font-size:24px;letter-spacing:-.03em;line-height:1.2;font-weight:800}
 .stat small{font-size:11px;color:var(--sub)}
 table.mtbl th{width:auto;white-space:nowrap}

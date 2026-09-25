@@ -69,34 +69,48 @@
 
 サイトの価格は「2名1室1泊」基準なので、リンク先（1名・3泊）の表示額とは一致しない。
 
-## 多言語（en）
+## 多言語
 
 | 項目 | 内容 |
 |---|---|
-| 生成物 | `en/index.html`（`tools/build-i18n.js`）／`en/city/*.html`・`en/country/*.html`（`tools/build-pages.js`）／`en/disclaimer.html`・`en/privacy.html`・`en/about.html`（手書き） |
-| 訳の正本 | トップ: `tools/i18n/en.js` の `pairs`（原文→訳。件数が合わないとビルド中止）／都市・国ページ: `tools/i18n/pages.js` の `ja`・`en` |
-| 言語の切替 | 固定バーの言語リンク（同じページの他言語版へ）。選んだ言語は `lang` に保存し、次回以降は保存先へ自動遷移 |
-| 自動判定 | 初回のみ、ブラウザ言語が一致しないときに案内バーを出す。**強制リダイレクトはしない**（検索エンジンが両版を見られるようにするため） |
-| hreflang | 全ページに ja / en / x-default（x-default は en） |
-| 既定通貨 | 言語ごとに `tools/i18n/pages.js` の `defCur`（トップは build-i18n.js が注入）。選択は `cur` に保存 |
-| Booking リンク | 言語ごとに `searchresults.ja.html` / `searchresults.en-gb.html` |
-| 言語を足す手順 | ①`tools/i18n/pages.js` に言語キーを追加 ②`tools/i18n/<code>.js` を作成 ③`tools/build-i18n.js` の `LANGS` に追加 ④法務3ページを用意 |
+| 言語一覧の正本 | `tools/i18n/pages.js` の `ORDER`（日本語＋15言語）。ja・en 以外は `tools/i18n/pages/<言語>.js` があるものだけ有効 |
+| 言語を足す手順 | `tools/i18n/TRANSLATING.md`（6ファイルの仕様）→ `node tools/i18n/check.js <言語>` が0エラー → 下の「生成」 |
+| 生成 | `node tools/build-pages.js && node tools/build-i18n.js && node tools/build-og.js` |
+| 生成物 | トップ `<言語>/index.html`（build-i18n.js）／都市・国ページ（build-pages.js）／`lang.js`・hreflang（build-i18n.js）／OGP `og/<言語>.png`（build-og.js）／法務3ページは言語ごとの手書き |
+| 訳の正本 | トップ: `tools/i18n/<言語>.js` の `pairs`（原文→訳。件数が合わない・日本語が残るとビルド中止）／都市・国ページ: `tools/i18n/pages.js`（ja・en）と `tools/i18n/pages/<言語>.js` |
+| 都市名・国名 | 都市: `tools/i18n/names/<言語>.json`／国: `Intl.DisplayNames`（CLDR）から自動（`tools/i18n/names.js`） |
+| 言語の切替 | 固定バーの言語メニュー（`lang.js`）。選んだ言語は `lang` に保存し、次回以降はその言語の同じページへ移動 |
+| 自動判定 | 初回のみ、ブラウザ言語に合う版があれば案内バーを出す。**強制リダイレクトはしない**（検索エンジンが全版を見られるように） |
+| hreflang | 全ページに全言語＋x-default（en）。トップと法務ページは `<!-- hreflang:start -->` ブロックを build-i18n.js が書き換える |
+| 既定通貨 | 言語ごとに `defCur`。選択は `cur` に保存 |
 
-## 多言語ロードマップ（2026-09-23 決定・未着手）
+### ロードマップ（2026-09-23 決定）
+英語 ✅ → 中国語繁体 → 韓国語 → 中国語簡体 → スペイン語 → ドイツ語 → フランス語 → ポルトガル語（ブラジル）→ インドネシア語 → タイ語 → イタリア語 → アラビア語（RTL）→ ロシア語 → ヒンディー語 → ベトナム語。
 
-順序: 英語（基盤＋通貨切替）→ 中国語繁体 → 韓国語 → 中国語簡体 → スペイン語 → ドイツ語 → フランス語 → ポルトガル語（ブラジル）→ インドネシア語 → タイ語 → イタリア語 → アラビア語（RTL）→ ロシア語 → ヒンディー語 → ベトナム語（計15言語＋日本語）。
-基盤は Fable で作り、言語追加は Opus に切り替えてよい。言語切替は初回のみブラウザ言語で自動案内し、固定バーの言語ボタンで選んだ言語を保存する。hreflang で各言語ページを対にする。
-
-## 取得条件
+## 取得条件（正本: `tools/lib/survey.js`）
 
 | 項目 | 内容 |
 |---|---|
-| 出典 | Booking.com 検索結果（`nflt=class=4` で4つ星に限定） |
-| 日程 | 2026年10月〜2027年9月の各月、第2火曜と第2土曜を交互に1泊（平日・週末を両方カバー）。取得日が2026-09-21のため未来日のみ＝この12ヶ月が最短の連続1年。グラフ表示だけ1月→12月の暦順に並べ替え |
+| 出典 | Booking.com 検索結果（`nflt=class=4` で4つ星に限定、`ss=都市名, 国名` で検索） |
+| 日程 | 調査日から先12か月の各月に1泊（偶数月=第2火曜・奇数月=第2土曜）。表示は1月→12月の暦順、年は都市ページの月別表に表示 |
 | 条件 | 2名1室1泊・日本円・税およびサービス料込みの表示価格 |
-| 中央値 | 価格上限フィルタを変えながら該当件数を二分探索し、在庫の半数が下回る価格を実測 |
+| 中央値 | 価格上限フィルタを変えながら該当件数を二分探索（50円刻み）し、在庫の半数が下回る価格を実測 |
 | 年間値 | 12ヶ月の中央値の中央値 |
-| 取得日 | 2026-09-21 |
+| 調査日 | 都市ごとの `cap`（無い都市は初回調査日 2026-09-21）。トップの「updated」は最新、鮮度注意は最古の調査日で判定 |
+
+## 価格の自動更新（毎晩）
+
+| 項目 | 内容 |
+|---|---|
+| しくみ | launchd が毎晩 03:30 に `tools/update-prices.js --limit 12 --push` を実行（スリープ中なら次の起床時）。調査日の古い順に12都市→約30晩で全都市が一巡＝各都市がおおむね毎月更新 |
+| 取得 | インストール済み Google Chrome をヘッドレス起動し、DevTools プロトコルでページ内 fetch（`tools/lib/chrome.js`。追加パッケージなし）。素の HTTP は Booking が 202 で拒否するため |
+| 所要 | 1都市あたり約8分（約130リクエスト・間隔2.2秒）→ 1晩 約1.5時間 |
+| 安全弁 | 有効な月が10未満、または年間中央値が前回比±60%超 → 反映せず `tools/hold/` に保留し通知。ブロック（captcha）を検知したらその晩は中断 |
+| 対象外 | 調査から25日以内の都市（初回データは 2026-10-16 ごろから順次更新が始まる） |
+| 反映 | `apply-city.js` → `build-i18n.js` → `build-og.js` → コミット → push |
+| ログ | `tools/logs/update-YYYY-MM.log`・`tools/logs/last-run.json`（git 管理外） |
+| 登録・解除 | `tools/launchd/install.sh` ／ `tools/launchd/uninstall.sh` |
+| 手動 | 1都市だけ: `node tools/update-prices.js --city "Bangkok|Thailand" --dry`（`--dry` は反映せず `tools/pending/` に残す） |
 
 ## 都市の選定基準（2026-09-22 制定）
 
@@ -115,7 +129,7 @@
 
 - **都市名 `name` と国名 `c` は変えない**。お気に入り（localStorage の `favCities` / `favCountries`）のキーが `name|c` なので、表記を変えると利用者の★が消える。表記を直したい場合は日本語名 `ja` だけを直す。
 - 都市は追加のみ。外す場合も `name|c` を再利用しない。
-- 価格の更新は同じキーのレコードの `med/lo/hi/cnt/m/ap` だけを差し替える（`tools/apply-city.js` がそのように動く）。
+- 価格の更新は同じキーのレコードの `med/lo/hi/cnt/m/ap/cap` だけを差し替える（`tools/apply-city.js` がそのように動く）。
 
 ## 既知の限界
 

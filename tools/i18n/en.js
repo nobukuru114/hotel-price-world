@@ -2,13 +2,7 @@
 // from は index.html 中に「そのまま」現れる文字列。n は出現回数（既定1）。build-i18n.js が件数を検査し、
 // 合わないとビルドを止める（＝日本語を直したら訳も直さないと気づける）。
 module.exports = {
-  code: "en",
-  htmlLang: "en",
-  locale: "en_US",
-  label: "English",
-  dir: "/en/",
-  defaultCurrency: "USD",
-  // 都市/国ページ（build-pages.js）用の文言は tools/i18n/pages-en.js
+  // 言語の属性（dir・htmlLang・既定通貨など）の正本は tools/i18n/pages.js。都市/国ページの文言もそちら。
   pairs: [
   // ---- head ----
   ['<html lang="ja">', '<html lang="en">'],
@@ -80,12 +74,12 @@ module.exports = {
   // ---- データと注意点 ----
   ['<summary><h2>データと注意点</h2><span class="secnote">出典・取得方法・限界</span></summary>',
    '<summary><h2>About the data</h2><span class="secnote">Source, method and limits</span></summary>'],
-  ['<li><b>出典</b>: <a href="https://www.booking.com/" target="_blank" rel="noopener">Booking.com</a> の検索結果（4つ星フィルタ適用）。2026-09-21 取得。</li>',
-   '<li><b>Source</b>: <a href="https://www.booking.com/" target="_blank" rel="noopener">Booking.com</a> search results with the 4-star filter applied, collected on 21 September 2026.</li>'],
+  ['<li><b>出典</b>: <a href="https://www.booking.com/" target="_blank" rel="noopener">Booking.com</a> の検索結果（4つ星フィルタ適用）。初回は 2026-09-21 に取得し、以降は各都市を約1か月ごとに順次再調査しています（都市ごとの調査日は各都市ページに表示）。</li>',
+   '<li><b>Source</b>: <a href="https://www.booking.com/" target="_blank" rel="noopener">Booking.com</a> search results with the 4-star filter applied. First collected on 21 September 2026; since then each city is re-surveyed in turn roughly once a month (each city page shows its own survey date).</li>'],
   ['<li><b>取得方法</b>: 各都市・各日程について、価格上限フィルタを変えながら該当件数を二分探索し、在庫の半数が下回る価格＝中央値を実測しています。掲載ホテル数も同時に記録。</li>',
    '<li><b>Method</b>: for every city and date we ran a binary search on the price-cap filter until half of the available hotels fell below the cap. That price is the measured median. The number of listings was recorded at the same time.</li>'],
-  ['<li><b>日程</b>: 2026年10月〜2027年9月の各月、第2火曜と第2土曜を交互に1泊（平日・週末の両方をカバー）。年間値はこの12サンプルの中央値です。</li>',
-   '<li><b>Dates</b>: one night in each month from October 2026 to September 2027, alternating between the second Tuesday and the second Saturday so that weekdays and weekends are both covered. The annual figure is the median of those twelve samples.</li>'],
+  ['<li><b>日程</b>: 各都市の調査日から先12か月の各月、第2火曜と第2土曜を交互に1泊（平日・週末の両方をカバー）。年間値はこの12サンプルの中央値です。</li>',
+   '<li><b>Dates</b>: one night in each of the twelve months following the city’s survey date, alternating between the second Tuesday and the second Saturday so that weekdays and weekends are both covered. The annual figure is the median of those twelve samples.</li>'],
   ['<li><b>条件</b>: 2名1室1泊・日本円・税およびサービス料込みの表示価格。1名利用や税別表示とは水準が異なります。</li>',
    '<li><b>Terms</b>: one night for two adults in one room, shown in Japanese yen with taxes and service charges included. Single occupancy or tax-exclusive listings sit at a different level.</li>'],
   ['<li><b>星の基準</b>: Booking.com 上の星数表示です。国により実質的な品質水準は異なります（同じ4つ星でも東南アジアと西欧では設備・立地が違います）。</li>',
@@ -108,8 +102,8 @@ module.exports = {
   ['<h2>地図</h2>', '<h2>Map</h2>'],
   ['aria-label="地図のスタイル" title="地図の下地を切り替え"', 'aria-label="Map style" title="Switch the base map"'],
   ['aria-pressed="false">全画面</button>', 'aria-pressed="false">Full screen</button>'],
-  ['<span>価格は 2026-09-21 時点の調査値です。実際の料金は予約サイトでご確認ください。</span>',
-   '<span>Prices were surveyed on 21 September 2026. Check the booking site for the rate you will actually pay.</span>'],
+  ['<span>価格は各都市の調査日時点の値です（都市ごとに約1か月ごとに更新）。実際の料金は予約サイトでご確認ください。</span>',
+   '<span>Prices are as of each city’s survey date (each city is refreshed roughly once a month). Check the booking site for the rate you will actually pay.</span>'],
   ['<a href="disclaimer.html">免責事項・データについて</a>', '<a href="disclaimer.html">Disclaimer and data</a>'],
   ['<a href="privacy.html">プライバシーポリシー</a>', '<a href="privacy.html">Privacy policy</a>'],
   ['<a href="about.html">運営者情報</a>', '<a href="about.html">About this site</a>'],
@@ -211,8 +205,8 @@ module.exports = {
   ['const val = vals[i] === "" || vals[i] === "null" ? "データなし" : fmtY(+vals[i]);',
    'const val = vals[i] === "" || vals[i] === "null" ? "no data" : fmtY(+vals[i]);'],
   ['(i === NOWI ? " ・今月" : (i === selMonth ? " ・選択中" : ""));', '(i === NOWI ? " · this month" : (i === selMonth ? " · selected" : ""));'],
-  ['st.innerHTML = "<b>ご注意:</b> 掲載価格は " + ASOF + " 時点の調査値で、取得から約 " + months + " か月が経過しています。相場が変わっている可能性があります。"; } }',
-   'st.innerHTML = "<b>Please note:</b> these prices were surveyed on " + ASOF + ", about " + months + " months ago. The market may have moved since."; } }'],
+  ['st.innerHTML = "<b>ご注意:</b> いちばん古い都市の価格は " + OLDEST + " 時点の調査値で、取得から約 " + months + " か月が経過しています。相場が変わっている可能性があります。"; } }',
+   'st.innerHTML = "<b>Please note:</b> the oldest prices here were surveyed on " + OLDEST + ", about " + months + " months ago. The market may have moved since."; } }'],
   ['document.getElementById("ranknote").textContent = DATA.length + " 都市";',
    'document.getElementById("ranknote").textContent = DATA.length + " cities";'],
   ['document.getElementById("ctrynote").textContent = new Set(DATA.map(d=>d.c)).size + " か国・地域";',

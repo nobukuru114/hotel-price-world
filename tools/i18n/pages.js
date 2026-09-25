@@ -3,7 +3,7 @@
 const MN_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const ja = {
-  htmlLang: "ja", locale: "ja_JP", dir: "", label: "日本語",
+  htmlLang: "ja", locale: "ja_JP", dir: "", label: "日本語", langMsg: "このページは日本語でもご覧いただけます。",
   siteName: "4つ星ホテル 世界都市 価格ランキング",
   og: { h1a: "世界の4つ星ホテルは、", h1b: "1泊いくら？", sub: (nc, n) => `${nc}か国${n}都市・Booking.com 実測・12か月の中央値`, kLo: "いちばん安い", kMed: "世界の中央値", kHi: "いちばん高い", city: d => d.ja, alt: "世界の4つ星ホテル 1泊あたりの価格ランキング" },
   booking: "searchresults.ja.html",
@@ -38,7 +38,7 @@ const ja = {
   statListed: "掲載数", listedVal: (n, L) => `${L.num(n)}軒`, statListedSub: thin => `4つ星${thin ? "・少なめ" : ""}`,
   monthH2: "月別の宿泊費（1泊あたりの中央値）",
   thMonth: "月", thMedian: "中央値", thVsYear: "年間比", thTrend: "推移",
-  monthNote: ap => `各月1日分（第2火曜または第2土曜）の実測値です。1〜9月は2027年、10〜12月は2026年の価格。${ap ? "この都市は検索結果1ページ目の価格中央値で代用しています。" : ""}`,
+  monthNote: ap => `各月1日分（第2火曜または第2土曜）の実測値です。年は各行に表示（調査日から先12か月）。${ap ? "この都市は検索結果1ページ目の価格中央値で代用しています。" : ""}`,
   cheapH2: disp => `${disp}に安く泊まるなら`,
   cheapLi: (sm, d, money) => [
     `<b>${sm.loM}月</b>がもっとも安く、年間中央値より${Math.round((1 - d.lo / d.med) * 100)}%安い ${money(d.lo)} です。`,
@@ -52,8 +52,8 @@ const ja = {
   allCities: (name, n) => `${name}の全 ${n} 都市と相場をまとめて見る →`,
   similar: "同じくらいの価格帯の都市",
   aboutH2: "このページのデータについて",
-  aboutP1: captured => `Booking.com 上で「4つ星」と表示される宿泊施設のうち、空室のあるものの価格中央値です。条件は大人2名・1室・1泊・税込・日本円。2026年10月〜2027年9月の各月から1日ずつ、計12回分を ${captured} に取得しました。`,
-  aboutP1c: captured => `Booking.com 上で「4つ星」と表示される宿泊施設のうち、空室のあるものの価格中央値です。条件は大人2名・1室・1泊・税込・日本円。2026年10月〜2027年9月の各月から1日ずつ、計12回分を ${captured} に取得しました。国の代表値は、その国の掲載都市の中央値です。`,
+  aboutP1: captured => `Booking.com 上で「4つ星」と表示される宿泊施設のうち、空室のあるものの価格中央値です。条件は大人2名・1室・1泊・税込・日本円。調査日（${captured}）から先12か月の各月から1日ずつ、計12回分を取得しました。`,
+  aboutP1c: captured => `Booking.com 上で「4つ星」と表示される宿泊施設のうち、空室のあるものの価格中央値です。条件は大人2名・1室・1泊・税込・日本円。各都市の調査日から先12か月の各月から1日ずつ、計12回分を取得しています（この国の最新の調査日は ${captured}）。国の代表値は、その国の掲載都市の中央値です。`,
   aboutP2: "星の数は各国の基準による表示のため、同じ4つ星でも国ごとに設備や立地は異なります。5つ星は掲載が1桁の都市が多く中央値が成立しないこと、3つ星は国による品質差が大きいことから、比較の単位として4つ星を採用しています。",
   aboutLinks: "<a href=\"../disclaimer.html#why4\">なぜ4つ星に限定しているのか →</a> ／ <a href=\"../disclaimer.html\">調査方法と免責事項の詳細 →</a>",
   backCity: n => `← ${n}都市の一覧・地図に戻る`,
@@ -80,7 +80,7 @@ ${nCountries}か国中${k.rank}番目に安い国です。もっとも安いの�
   cityTableNote: "都市名をクリックすると、その都市の月別価格の詳細ページへ移動します。掲載数が30軒を下回る都市は中央値が不安定です。",
   countryMonthH2: name => `${name}全体の月別推移`,
   thCountryMed: "都市中央値",
-  countryMonthNote: name => `各月について、${name}の掲載都市の中央値をさらに中央値でまとめた値です。1〜9月は2027年、10〜12月は2026年の実測。`,
+  countryMonthNote: name => `各月について、${name}の掲載都市の中央値をさらに中央値でまとめた値です。年は各行に表示（この国の最新の調査日から先12か月）。`,
   countryCheapH2: name => `${name}に安く泊まるなら`,
   countryCheapLi: ctx => {
     const { money, cheapest, priciest, loM, hiM, loV, hiV, k, L } = ctx;
@@ -109,7 +109,7 @@ ${nCountries}か国中${k.rank}番目に安い国です。もっとも安いの�
 };
 
 const en = {
-  htmlLang: "en", locale: "en_US", dir: "en/", label: "English",
+  htmlLang: "en", locale: "en_US", dir: "en/", label: "English", langMsg: "This page is also available in English.",
   siteName: "4-Star Hotel Prices by City",
   og: { h1a: "What does a 4-star hotel", h1b: "cost per night?", sub: (nc, n) => `${n} cities in ${nc} countries · real Booking.com rates · 12-month median`, kLo: "Cheapest", kMed: "World median", kHi: "Priciest", city: d => d.name, alt: "4-star hotel prices per night in cities around the world" },
   booking: "searchresults.en-gb.html",
@@ -143,7 +143,7 @@ const en = {
   statListed: "Hotels listed", listedVal: (n, L) => L.num(n), statListedSub: thin => `4-star${thin ? " · thin inventory" : ""}`,
   monthH2: "Price by month (median per night)",
   thMonth: "Month", thMedian: "Median", thVsYear: "vs year", thTrend: "Trend",
-  monthNote: ap => `One measured night per month, on the second Tuesday or the second Saturday. January to September are 2027; October to December are 2026.${ap ? " For this city the median of the first results page was used instead." : ""}`,
+  monthNote: ap => `One measured night per month, on the second Tuesday or the second Saturday, within the twelve months after the survey date (the year is shown on each row).${ap ? " For this city the median of the first results page was used instead." : ""}`,
   cheapH2: disp => `Staying in ${disp} for less`,
   cheapLi: (sm, d, money) => [
     `<b>${MN_EN[sm.loM - 1]}</b> is the cheapest month at ${money(d.lo)}, ${Math.round((1 - d.lo / d.med) * 100)}% below the annual median.`,
@@ -157,8 +157,8 @@ const en = {
   allCities: (name, n) => `See all ${n} cities in ${name} and their prices →`,
   similar: "Cities in a similar price range",
   aboutH2: "About the data on this page",
-  aboutP1: captured => `These are median prices for hotels shown as “4-star” on Booking.com that still had rooms available. The terms are two adults, one room, one night, taxes included, priced in Japanese yen. One date was sampled in each month from October 2026 to September 2027, twelve in total, collected on ${captured}.`,
-  aboutP1c: captured => `These are median prices for hotels shown as “4-star” on Booking.com that still had rooms available. The terms are two adults, one room, one night, taxes included, priced in Japanese yen. One date was sampled in each month from October 2026 to September 2027, twelve in total, collected on ${captured}. A country’s figure is the median across its listed cities.`,
+  aboutP1: captured => `These are median prices for hotels shown as “4-star” on Booking.com that still had rooms available. The terms are two adults, one room, one night, taxes included, priced in Japanese yen. One date was sampled in each of the twelve months following the survey date (${captured}), twelve in total.`,
+  aboutP1c: captured => `These are median prices for hotels shown as “4-star” on Booking.com that still had rooms available. The terms are two adults, one room, one night, taxes included, priced in Japanese yen. One date was sampled in each of the twelve months following each city’s survey date, twelve in total (the latest survey date in this country is ${captured}). A country’s figure is the median across its listed cities.`,
   aboutP2: "Star ratings follow each country’s own conventions, so a 4-star hotel differs in facilities and location from place to place. We use 4-star as the unit of comparison because many cities list fewer than ten 5-star hotels, leaving no meaningful median, while 3-star quality varies far too much between countries.",
   aboutLinks: "<a href=\"../disclaimer.html#why4\">Why only 4-star hotels →</a> · <a href=\"../disclaimer.html\">Method and disclaimer in full →</a>",
   backCity: n => `← Back to the list and map of ${n} cities`,
@@ -184,7 +184,7 @@ Country-wide, <b>${MN_EN[loM - 1]}</b> is the cheapest month (${money(loV)}) and
   cityTableNote: "Click a city for its month-by-month page. Where fewer than 30 hotels are listed, the median is unstable.",
   countryMonthH2: name => `Month-by-month across ${name}`,
   thCountryMed: "Median across cities",
-  countryMonthNote: name => `For each month this is the median of the city medians in ${name}. January to September are 2027; October to December are 2026.`,
+  countryMonthNote: name => `For each month this is the median of the city medians in ${name}. The year is shown on each row (the twelve months after the latest survey date in this country).`,
   countryCheapH2: name => `Staying in ${name} for less`,
   countryCheapLi: ctx => {
     const { money, cheapest, priciest, loM, hiM, loV, hiV, k } = ctx;
@@ -216,4 +216,9 @@ function ord(n){
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-module.exports = { ja, en };
+// 言語の登録順（キー＝URL の言語ディレクトリ名）。ja・en 以外は tools/i18n/pages/<キー>.js があるものだけ読み込む。
+// 各言語ファイルは en と同じキー構成（build-pages.js が検査する）。
+const ORDER = ["ja","en","zh-tw","ko","zh-cn","es","de","fr","pt-br","id","th","it","ar","ru","hi","vi"];
+const all = { ja, en };
+for(const code of ORDER.slice(2)){ const f = require("path").join(__dirname, "pages", code + ".js"); if(require("fs").existsSync(f)) all[code] = require(f); }
+module.exports = all;

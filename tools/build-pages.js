@@ -4,7 +4,9 @@
 const fs = require("fs"), path = require("path");
 const ROOT = path.join(__dirname, "..");
 const BASE = "https://nobukuru114.github.io/hotel-price-world";
-const CAPTURED = "2026-09-21", BUILT = new Date().toISOString().slice(0,10);
+const BUILT = new Date().toISOString().slice(0,10);
+const { stayDates, capOf } = require("./lib/survey.js");
+const { localNames } = require("./i18n/names.js");     // 都市ごとの調査日と宿泊日（正本）
 const LANGS = require("./i18n/pages.js");           // { ja, en, ... }
 const LKEYS = Object.keys(LANGS);
 const XDEFAULT = "en";                              // hreflang x-default に使う言語
@@ -28,7 +30,7 @@ const CJ   = pick("const CJ = {");
 
 // ---- 共通ヘルパ -----------------------------------------------------------
 const MORDER = [3,4,5,6,7,8,9,10,11,0,1,2];              // 表示順(1月→12月) → データ添字
-const YEAR   = i => (i <= 8 ? 2027 : 2026);              // 1〜9月=2027, 10〜12月=2026
+const yearsOf = cap => { const s = stayDates(cap); return MORDER.map(i => s[i].getUTCFullYear()); };   // 表示順（1月→12月）の年
 const BANDS = [
   {max:5000,   c:"var(--b1)"}, {max:10000, c:"var(--b2)"}, {max:15000, c:"var(--b3)"},
   {max:20000,  c:"var(--b4)"}, {max:30000, c:"var(--b5)"}, {max:Infinity, c:"var(--b6)"}
@@ -40,7 +42,7 @@ const money = n => `<span class="jpy" data-jpy="${Number(n)}">${yen(n)}</span>`;
 const enc  = encodeURIComponent;
 const RATES = (() => { const m = src.match(/^const RATES = (.*);$/m); if(!m) throw new Error("RATES not found in index.html"); return JSON.parse(m[1]); })();
 const CURS_JA = (() => { const m = src.match(/^const CURS = (.*);$/m); if(!m) throw new Error("CURS not found"); return eval("(" + m[1] + ")"); })();   // キーが無引用符なので eval
-const CUR_NAMES = { ja: null, en: require("./i18n/en.js").currencyNames };
+const CUR_NAMES = Object.fromEntries(LKEYS.map(k => [k, k === "ja" ? null : require(`./i18n/${k}.js`).currencyNames]));
 const cursFor = key => {
   const names = CUR_NAMES[key];
   if(!names) return CURS_JA;
@@ -86,7 +88,8 @@ const median = a => { const v = a.slice().sort((x,y)=>x-y); const n = v.length;
 const COUNTRIES = Object.entries(byCountry).map(([c, list]) => {
   const mid = median(list.map(d => d.med));
   const months = MORDER.map((s) => { const vs = list.map(d => d.m[s]).filter(v => v != null); return vs.length ? median(vs) : null; });
-  return { c, list, mid, months, slug: slugify(c), ja: (CJ[c] ? CJ[c].ja : c), flag: (CJ[c] ? CJ[c].f : "") };
+  const cap = list.map(capOf).sort().pop();                   // 国内でいちばん新しい調査日
+  return { c, list, mid, months, cap, slug: slugify(c), ja: (CJ[c] ? CJ[c].ja : c), flag: (CJ[c] ? CJ[c].f : "") };
 });
 COUNTRIES.sort((a,b) => a.mid - b.mid).forEach((k,i) => { k.rank = i + 1; });
 const CMAP = Object.fromEntries(COUNTRIES.map(k => [k.c, k]));
@@ -119,9 +122,8 @@ ${alts}
 <script type="application/ld+json">${JSON.stringify(jsonld)}</script>
 </head><body>`;
 }
-function topbar(L, otherHref) {
-  const other = LKEYS.filter(k => k !== keyOf(L)).map(k =>
-    `<a class="tl lang" href="${otherHref(k)}" hreflang="${LANGS[k].htmlLang}">${LANGS[k].label}</a>`).join("");
+function topbar(L) {                                   // 言語メニューは lang.js が .tbwrap に足す
+  const other = "";
   return `<nav class="topbar"><div class="tbwrap"><a class="brand" href="../"><i>¥</i>Hotel Price World</a><a class="tl" href="../#sec-rank">${esc(L.navRank)}</a><a class="tl" href="../#sec-country">${esc(L.navCountry)}</a><a class="tl" href="../disclaimer.html">${esc(L.navAbout)}</a>${other}</div></nav>`;
 }
 const footer = L => `<footer><a href="../">${esc(L.footRank)}</a><a href="../disclaimer.html">${esc(L.footDisc)}</a><a href="../privacy.html">${esc(L.footPriv)}</a><a href="../about.html">${esc(L.footAbout)}</a></footer>`;
@@ -133,7 +135,7 @@ function paint(){document.querySelectorAll(".jpy[data-jpy]").forEach(function(e)
 var tb=document.querySelector(".tbwrap");if(tb){var s=document.createElement("select");s.className="cursel";s.setAttribute("aria-label",${JSON.stringify(L.curAria)});s.innerHTML=Object.keys(R).filter(function(k){return k!=="date"}).map(function(k){return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+k+' '+C[k][1]+'</option>'}).join("");s.title=${JSON.stringify(L.curTitle(RATES.date))};s.addEventListener("change",function(){cur=R[s.value]?s.value:"JPY";try{localStorage.setItem("cur",cur)}catch(e){}paint();});tb.appendChild(s);}
 paint();})();</script>`; };
 
-function monthRows(vals, mid, L) {
+function monthRows(vals, mid, L, years) {
   const known = vals.filter(v => v != null);
   const lo = Math.min(...known), hi = Math.max(...known);
   return vals.map((v, disp) => {
@@ -142,7 +144,7 @@ function monthRows(vals, mid, L) {
               : v === hi ? `<span class="pill hi">${esc(L.pillHi)}</span>` : "";
     const diff = v == null ? "—" : (v === mid ? "±0%"
               : (v > mid ? "+" : "−") + Math.round(Math.abs(v - mid) / mid * 100) + "%");
-    return `<tr><th>${L.monthTh(disp, YEAR(disp))}</th>
+    return `<tr><th>${L.monthTh(disp, years[disp])}</th>
       <td class="num">${v == null ? "—" : money(v)}</td>
       <td class="num sub">${diff}</td>
       <td class="barc"><span class="bar" style="width:${w}%;background:${v == null ? "transparent" : BANDS[bandOf(v)].c}"></span>${tag}</td></tr>`;
@@ -159,11 +161,18 @@ function summaryOf(d) {
 
 // ---- 言語ごとに生成 -------------------------------------------------------
 const allUrls = [];
+// 各言語は en と同じキー構成であること（訳し漏れ・余計なキーでビルドを止める）
+LKEYS.forEach(k => { const a = Object.keys(LANGS.en).sort().join(), b = Object.keys(LANGS[k]).sort().join();
+  if(a !== b) throw new Error(`tools/i18n/pages の ${k} のキーが en と違う: 不足 ${Object.keys(LANGS.en).filter(x => !(x in LANGS[k]))} / 余分 ${Object.keys(LANGS[k]).filter(x => !(x in LANGS.en))}`); });
+
 LKEYS.forEach(key => {
   const L = LANGS[key];
+  // 表示名（ja・en 以外）: 都市 d.__ln・国 k.__lc（tools/i18n/names.js）
+  const NM = key === "ja" || key === "en" ? null : localNames(key, L.htmlLang, DATA, CJ);
+  DATA.forEach(d => { d.__ln = NM ? (NM.LN[d.name + "|" + d.c] || d.name) : d.name; });
+  COUNTRIES.forEach(k => { k.__lc = NM ? (NM.LC[k.c] || k.c) : k.c; });
   const root = path.join(ROOT, L.dir);                 // "" or "en/"
   const up = L.dir ? "../../" : "../";                 // 都市/国ページから見たサイト直下
-  const rel = L.dir ? "../../" : "../";                // 言語切替リンクの基点
   const cityDir = path.join(root, "city"), cDir = path.join(root, "country");
   fs.rmSync(cityDir, { recursive: true, force: true }); fs.mkdirSync(cityDir, { recursive: true });
   fs.rmSync(cDir, { recursive: true, force: true }); fs.mkdirSync(cDir, { recursive: true });
@@ -192,7 +201,7 @@ LKEYS.forEach(key => {
     const near = DATA.filter(x => x !== d && x.c !== d.c)
       .sort((a,b) => Math.abs(a.med - d.med) - Math.abs(b.med - d.med)).slice(0, 8);
     const li = list => list.map(x =>
-      `<li><a href="${x.__slug}.html">${esc(L.cityShort(x))}${key !== "en" ? `<small>${esc(x.name)}</small>` : ""}</a>
+      `<li><a href="${x.__slug}.html">${esc(L.cityShort(x))}${L.cityShort(x) !== x.name ? `<small>${esc(x.name)}</small>` : ""}</a>
        <span class="sub">${CJ[x.c] ? CJ[x.c].f : ""} ${esc(L.countryName(CMAP[x.c]))} ${money(x.med)}</span></li>`).join("");
     let nb = "";
     if (same.length) nb += `<section class="card"><h2>${esc(L.otherCities(cname))}</h2><ul class="links">${li(same)}</ul>
@@ -200,11 +209,11 @@ LKEYS.forEach(key => {
     if (near.length) nb += `<section class="card"><h2>${esc(L.similar)}</h2><ul class="links">${li(near)}</ul></section>`;
 
     const html = head(L, { title, desc, url, altPath: `city/${d.__slug}.html`, type: "article", jsonld, up })
-+ topbar(L, k => rel + LANGS[k].dir + `city/${d.__slug}.html`) + `
++ topbar(L) + `
 <div class="wrap">
 <nav class="crumb"><a href="../">${esc(L.crumbHome)}</a> › <span>${CJ[d.c] ? CJ[d.c].f : ""} ${esc(cname)}</span> › <span>${esc(disp)}</span></nav>
 <h1>${esc(L.cityH1(disp))}</h1>
-<p class="upd">${esc(L.updLine(CJ[d.c] ? CJ[d.c].f : "", cname, CAPTURED))}</p>
+<p class="upd">${esc(L.updLine(CJ[d.c] ? CJ[d.c].f : "", cname, capOf(d)))}</p>
 <p class="lead">${lead}</p>
 <div class="stats">
   <div class="stat"><span>${esc(L.statAnnual)}</span><b style="color:${BANDS[bandOf(d.med)].c}">${money(d.med)}</b><small>${esc(L.statAnnualSub)}</small></div>
@@ -219,7 +228,7 @@ LKEYS.forEach(key => {
 <table class="mtbl">
 <thead><tr><th>${esc(L.thMonth)}</th><th class="num">${esc(L.thMedian)}</th><th class="num">${esc(L.thVsYear)}</th><th>${esc(L.thTrend)}</th></tr></thead>
 <tbody>
-${monthRows(MORDER.map(i => d.m[i]), d.med, L)}
+${monthRows(MORDER.map(i => d.m[i]), d.med, L, yearsOf(capOf(d)))}
 </tbody></table>
 <p class="sub">${esc(L.monthNote(d.ap))}</p>
 </section>
@@ -229,17 +238,17 @@ ${monthRows(MORDER.map(i => d.m[i]), d.med, L)}
 <p class="cta"><a class="btn" href="${bookUrl(d, L)}" data-bk="${esc(bookFilters(d, L).label)}" target="_blank" rel="noopener">${esc(L.ctaBook(L.cityShort(d)))}</a>
 <a class="btn ghost" href="${mapUrl(d)}" target="_blank" rel="noopener">${esc(L.ctaMap)}</a></p>
 <p class="sub">${esc(L.bkNote(bookFilters(d, L).label))}</p>
-<p class="sub">${esc(L.ctaNote(CAPTURED))}</p>
+<p class="sub">${esc(L.ctaNote(capOf(d)))}</p>
 </section>
 ${nb}
 <section class="card">
 <h2>${esc(L.aboutH2)}</h2>
-<p>${esc(L.aboutP1(CAPTURED))}</p>
+<p>${esc(L.aboutP1(capOf(d)))}</p>
 <p>${esc(L.aboutP2)}</p>
 <p>${L.aboutLinks}</p>
 </section>
 <p class="backlink"><a href="../">${esc(L.backCity(DATA.length))}</a></p>
-${footer(L)}${bookJs(L)}${curJs(L)}
+${footer(L)}${bookJs(L)}${curJs(L)}<script src="${up}lang.js" defer></script>
 </div></body></html>`;
     fs.writeFileSync(path.join(cityDir, d.__slug + ".html"), html);
   });
@@ -287,11 +296,11 @@ ${footer(L)}${bookJs(L)}${curJs(L)}
     const ctx = { money, name, cheapest, priciest, nCountries: COUNTRIES.length, loM, hiM, loV, hiV, k, L };
 
     const html = head(L, { title, desc, url, altPath: `country/${k.slug}.html`, type: "article", jsonld, up })
-+ topbar(L, x => rel + LANGS[x].dir + `country/${k.slug}.html`) + `
++ topbar(L) + `
 <div class="wrap">
 <nav class="crumb"><a href="../">${esc(L.crumbHome)}</a> › <span>${k.flag} ${esc(name)}</span></nav>
 <h1>${esc(L.countryH1(name))}</h1>
-<p class="upd">${esc(L.updLine(k.flag, k.c, CAPTURED))}</p>
+<p class="upd">${esc(L.updLine(k.flag, k.c, k.cap))}</p>
 <p class="lead">${L.countryLead(k, ctx)}</p>
 <div class="stats">
   <div class="stat"><span>${esc(L.statCountryMed)}</span><b style="color:${BANDS[bandOf(k.mid)].c}">${money(k.mid)}</b><small>${esc(L.statAnnualSub)}</small></div>
@@ -315,7 +324,7 @@ ${rows}
 <table class="mtbl">
 <thead><tr><th>${esc(L.thMonth)}</th><th class="num">${esc(L.thCountryMed)}</th><th class="num">${esc(L.thVsYear)}</th><th>${esc(L.thTrend)}</th></tr></thead>
 <tbody>
-${monthRows(k.months, k.mid, L)}
+${monthRows(k.months, k.mid, L, yearsOf(k.cap))}
 </tbody></table>
 <p class="sub">${esc(L.countryMonthNote(name))}</p>
 </section>
@@ -324,7 +333,7 @@ ${monthRows(k.months, k.mid, L)}
 <ul>${L.countryCheapLi(ctx).map(x => `<li>${x}</li>`).join("")}</ul>
 <p class="cta"><a class="btn" href="https://www.booking.com/${L.booking}?ss=${enc(k.c)}&group_adults=1&no_rooms=1&group_children=0&selected_currency=${L.defCur}&nflt=${enc(bookFilters({cnt:0}, L).nflt)}" data-bk="${esc(bookFilters({cnt:0}, L).label)}" target="_blank" rel="noopener">${esc(L.ctaBookCountry(name))}</a></p>
 <p class="sub">${esc(L.bkNote(bookFilters({cnt:0}, L).label))}</p>
-<p class="sub">${esc(L.ctaNote(CAPTURED))}</p>
+<p class="sub">${esc(L.ctaNote(k.cap))}</p>
 </section>
 <section class="card">
 <h2>${esc(L.nearH2)}</h2>
@@ -334,12 +343,12 @@ ${near.map(x => `<li><a href="${x.slug}.html">${x.flag} ${esc(L.countryName(x))}
 </section>
 <section class="card">
 <h2>${esc(L.aboutH2)}</h2>
-<p>${esc(L.aboutP1c(CAPTURED))}</p>
+<p>${esc(L.aboutP1c(k.cap))}</p>
 <p>${esc(L.aboutP2)}</p>
 <p>${L.aboutLinks}</p>
 </section>
 <p class="backlink"><a href="../">${esc(L.backCountry(DATA.length, COUNTRIES.length))}</a></p>
-${footer(L)}${bookJs(L)}${curJs(L)}
+${footer(L)}${bookJs(L)}${curJs(L)}<script src="${up}lang.js" defer></script>
 </div></body></html>`;
     fs.writeFileSync(path.join(cDir, k.slug + ".html"), html);
   });
