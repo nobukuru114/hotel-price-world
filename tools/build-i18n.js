@@ -29,6 +29,11 @@ LANGS.forEach(code => {
   if (count(out, 'let curCode = "JPY";') !== 1) throw new Error("curCode not found");
   out = out.replace('let curCode = "JPY";', "let curCode = " + JSON.stringify(defCur) + ";");
 
+  // OGP 画像と代替テキスト（正本: tools/i18n/pages.js の og.alt）
+  const P = require("./i18n/pages.js")[code];
+  out = out.replace("/og/ja.png", `/og/${code}.png`)
+           .replace(/<meta property="og:image:alt" content="[^"]*">/, `<meta property="og:image:alt" content="${P.og.alt}">`);
+
   // 通貨名を各言語に差し替え
   const m = out.match(/^const CURS = (.*);$/m);
   if (!m) throw new Error("CURS not found");

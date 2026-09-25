@@ -108,6 +108,11 @@ ${alts}
 <meta property="og:url" content="${url}">
 <meta property="og:locale" content="${L.locale}">
 <meta property="og:site_name" content="${esc(L.siteName)}">
+<meta property="og:image" content="${BASE}/og/${keyOf(L)}.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${esc(L.og.alt)}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${up}favicon.svg">
 <link rel="stylesheet" href="${up}page.css">
 <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>

@@ -5,6 +5,7 @@ const MN_EN = ["January","February","March","April","May","June","July","August"
 const ja = {
   htmlLang: "ja", locale: "ja_JP", dir: "", label: "日本語",
   siteName: "4つ星ホテル 世界都市 価格ランキング",
+  og: { h1a: "世界の4つ星ホテルは、", h1b: "1泊いくら？", sub: (nc, n) => `${nc}か国${n}都市・Booking.com 実測・12か月の中央値`, kLo: "いちばん安い", kMed: "世界の中央値", kHi: "いちばん高い", city: d => d.ja, alt: "世界の4つ星ホテル 1泊あたりの価格ランキング" },
   booking: "searchresults.ja.html",
   defCur: "JPY",
   num: n => Number(n).toLocaleString("ja-JP"),
@@ -110,6 +111,7 @@ ${nCountries}か国中${k.rank}番目に安い国です。もっとも安いの�
 const en = {
   htmlLang: "en", locale: "en_US", dir: "en/", label: "English",
   siteName: "4-Star Hotel Prices by City",
+  og: { h1a: "What does a 4-star hotel", h1b: "cost per night?", sub: (nc, n) => `${n} cities in ${nc} countries · real Booking.com rates · 12-month median`, kLo: "Cheapest", kMed: "World median", kHi: "Priciest", city: d => d.name, alt: "4-star hotel prices per night in cities around the world" },
   booking: "searchresults.en-gb.html",
   defCur: "USD",
   num: n => Number(n).toLocaleString("en-US"),
